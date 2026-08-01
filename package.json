@@ -1,0 +1,19 @@
+{
+  "name": "openthalamus-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "openthalamus.dev — landing page and waitlist for thalamus",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node ./dist/server/entry.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.2.2",
+    "@astrojs/sitemap": "^3.4.1",
+    "astro": "^5.13.2",
+    "better-sqlite3": "^11.10.0"
+  }
+}

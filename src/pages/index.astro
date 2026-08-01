@@ -1,0 +1,159 @@
+---
+import Base from "../layouts/Base.astro";
+
+const title = "thalamus — the control plane and memory for agentic work";
+const description =
+  "thalamus is a self-hosted meta-layer over coding agents: one memory, one trust gate, and durable jobs across swappable engines. Join the waitlist.";
+
+// Server-rendered into the static HTML at build time, so the widget key ships
+// with zero client fetches. Empty in dev / before Turnstile is provisioned, in
+// which case the form degrades to honeypot + rate-limit only.
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
+
+const pillars = [
+  {
+    h: "One memory",
+    p: "Conversations, notes, and decisions fold into a single store. No session starts cold, and nothing depends on one vendor remembering for you.",
+  },
+  {
+    h: "One trust gate",
+    p: "Unclear goes to the forum. Risky, external, or expensive goes to approvals. Outbound mail is draft-only. Confident own-infra work acts and logs.",
+  },
+  {
+    h: "A meta-harness",
+    p: "thalamus sits above coding harnesses and model providers. It owns jobs, results, cost, and resume — engines are replaceable fuel.",
+  },
+  {
+    h: "One product, every surface",
+    p: "Web, desktop, mobile, and CLI over one server contract and one design language. Shells do not invent their own product logic.",
+  },
+];
+---
+
+<Base title={title} description={description}>
+  <div class="wrap">
+    <div class="hero">
+      <p class="eyebrow">open source · self-hosted · pre-release</p>
+      <h1>The control plane and memory for agentic work.</h1>
+      <p class="lede">
+        Code is becoming cheap and abundant. Coherence, judgment, and attention are not.
+        thalamus is the durable layer that remembers, routes, and delegates — while you
+        keep control of everything irreversible.
+      </p>
+      <p class="sub">
+        The name is the point: the thalamus is the brain's relay station. This is not the
+        intelligence — it is what routes, gates, and remembers on behalf of it.
+      </p>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <h2>What it does</h2>
+      <div class="grid">
+        {pillars.map((p) => (
+          <article class="card">
+            <h3>{p.h}</h3>
+            <p>{p.p}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="waitlist">
+    <div class="wrap">
+      <h2>Join the waitlist</h2>
+      <div class="signup">
+        <p style="margin:0;color:var(--text-muted);font-size:15px;max-width:56ch;">
+          v0 is an early base for collaboration, not a released artifact. Leave an email and
+          you will hear when there is something worth self-hosting.
+        </p>
+
+        <form id="waitlist-form" method="POST" action="/api/waitlist" novalidate>
+          <div class="field-row">
+            <label for="email" class="hp">Email address</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autocomplete="email"
+              inputmode="email"
+              placeholder="you@example.com"
+            />
+            <button type="submit" id="submit-btn">Request access</button>
+          </div>
+
+          {/* Honeypot: bots fill every field they find; humans never see this. */}
+          <div class="hp" aria-hidden="true">
+            <label for="company">Company</label>
+            <input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          {turnstileSiteKey && (
+            <div
+              class="cf-turnstile"
+              data-sitekey={turnstileSiteKey}
+              data-theme="dark"
+              data-size="flexible"
+              style="margin-top:16px;"
+            />
+          )}
+
+          <p class="msg" id="form-msg" role="status" aria-live="polite"></p>
+          <p class="form-note">
+            One email, stored to tell you about thalamus. Nothing else, no sharing.
+          </p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  {turnstileSiteKey && (
+    <script
+      is:inline
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+      async
+      defer
+    />
+  )}
+
+  <script>
+    // Progressive enhancement: the form is a real POST and works without JS.
+    // This only upgrades it to stay on the page.
+    const form = document.getElementById("waitlist-form") as HTMLFormElement | null;
+    const msg = document.getElementById("form-msg");
+    const btn = document.getElementById("submit-btn") as HTMLButtonElement | null;
+    if (form && msg && btn) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msg.textContent = "";
+        msg.removeAttribute("data-state");
+        btn.disabled = true;
+        try {
+          const res = await fetch("/api/waitlist", {
+            method: "POST",
+            headers: { Accept: "application/json" },
+            body: new FormData(form),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok) {
+            msg.setAttribute("data-state", "ok");
+            msg.textContent = data.message || "You're on the list.";
+            form.reset();
+          } else {
+            msg.setAttribute("data-state", "error");
+            msg.textContent = data.message || "Something went wrong. Try again.";
+            if (window.turnstile) window.turnstile.reset();
+          }
+        } catch {
+          msg.setAttribute("data-state", "error");
+          msg.textContent = "Network error. Try again.";
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+  </script>
+</Base>
