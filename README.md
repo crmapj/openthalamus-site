@@ -40,6 +40,17 @@ endpoint (`ALLOWED_ORIGIN_HOSTS`).
 | `TURNSTILE_SECRET_KEY` | Runtime, server-side verification |
 | `IP_HASH_SALT` | Salt for IP hashing |
 | `ALLOWED_ORIGIN_HOSTS` | CSV of accepted Origin hostnames |
+| `CLOUDFLARE_EMAIL_TOKEN` | API token with **Email Sending: Edit**. Absent ⇒ mail is skipped and logged, signups still work |
+| `MAIL_FROM` / `MAIL_FROM_NAME` | Sender (default `hello@openthalamus.dev` / `thalamus`) |
+| `MAIL_REPLY_TO` | Where replies go |
+
+## Confirmation email
+
+Sent through Cloudflare Email Service's SMTP endpoint (`smtp.mx.cloudflare.net:465`,
+implicit TLS, username the literal `api_token`). Sending is **best effort**: the
+address is committed before the send is attempted and `sendMail` never throws, so
+a slow or failing mail hop cannot fail a signup. A repeat submit sends nothing —
+re-confirming an address already on the list is how a form becomes a spam cannon.
 
 ## Reading the list
 

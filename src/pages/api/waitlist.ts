@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { createHash } from "node:crypto";
 import { getDb, normaliseEmail, rateLimited } from "../../lib/db";
+import { sendMail, waitlistConfirmation } from "../../lib/email";
 
 // The only server-rendered route on the site. Everything else is static HTML.
 export const prerender = false;
@@ -151,9 +152,16 @@ export const POST: APIRoute = async ({ request }) => {
     // to anyone who can guess it, which for a public pre-release list is worth
     // far less than a person knowing their second submit was not lost. The rate
     // limiter still stops anyone enumerating at scale.
-    return info.changes > 0
-      ? reply(request, 200, "You're on the list.", "added")
-      : reply(request, 200, "You're already on the list.", "already");
+    if (info.changes > 0) {
+      // Fire and forget. The address is already committed, so a slow or failing
+      // mail hop must not delay the response or turn a successful signup into a
+      // visible error. sendMail never throws.
+      void sendMail(waitlistConfirmation(email));
+      return reply(request, 200, "You're on the list.", "added");
+    }
+    // Deliberately no second email on a repeat submit — re-confirming an address
+    // that is already on the list is how a signup form becomes a spam cannon.
+    return reply(request, 200, "You're already on the list.", "already");
   } catch (err) {
     console.error("waitlist insert failed:", err);
     return reply(request, 500, "Could not save that right now. Try again shortly.");
