@@ -305,7 +305,7 @@ const mark = (v: string) =>
       );
       targets.forEach((el) => io.observe(el));
       // Failsafe: whatever has not been reached in 2.5s is shown regardless.
-      setTimeout(revealAll, 2500);
+      setTimeout(revealAll, 900);   // short: any capture or no-scroll case resolves fast
       window.addEventListener("beforeprint", revealAll);
     }
 

@@ -278,7 +278,13 @@ button[disabled] { opacity: 0.5; cursor: not-allowed; }
    never saw — fast scroll, anchor jump, observer failure — stayed invisible
    forever. Two whole sections rendered blank. Never hide content on the
    assumption that a script will later reveal it. */
-html.js-anim .reveal { opacity: 0; }
+/* The resting state is VISIBLE. Only the *offset* is pre-applied, so an element
+   the observer never reaches sits 14px low rather than disappearing. Two
+   separate failures came from the opposite arrangement (hide in CSS, rely on JS
+   to un-hide): blank sections in Chromium when never scrolled, and blank
+   sections in Safari because the screenshot beat the failsafe. Worst case here
+   is a small offset nobody notices. */
+html.js-anim .reveal { transform: translateY(14px); }
 html.js-anim .reveal.in { animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 .reveal.in:nth-child(2) { animation-delay: 0.06s; }
 .reveal.in:nth-child(3) { animation-delay: 0.12s; }
@@ -437,7 +443,9 @@ html.js-anim .in .gate-fill { animation: grow-bar 0.9s cubic-bezier(0.22, 1, 0.3
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal, .reveal.in, html.js-anim .reveal { opacity: 1 !important; animation: none !important; }
+  .reveal, .reveal.in, html.js-anim .reveal {
+    opacity: 1 !important; transform: none !important; animation: none !important;
+  }
   .flow-line { animation: none !important; }
   .live-dot { animation: none !important; }
   .gate-fill { transform: scaleX(1) !important; animation: none !important; }
