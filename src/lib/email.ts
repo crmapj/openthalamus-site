@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { waitlistConfirmationMail } from "./email-template";
 
 /**
  * Outbound mail via Cloudflare Email Service's SMTP submission endpoint.
@@ -69,55 +70,7 @@ export async function sendMail(mail: Mail): Promise<boolean> {
   }
 }
 
-/**
- * Waitlist confirmation.
- *
- * Plain text is not optional: some clients only render it, and a missing text
- * part measurably worsens spam scoring. The HTML is deliberately simple —
- * inline styles, a table-free single column, no images, no web fonts, no
- * tracking pixel. Mail clients strip most CSS, and anything clever here reads
- * as marketing to a spam filter.
- */
 export function waitlistConfirmation(to: string): Mail {
-  const subject = "You're on the thalamus waitlist";
-
-  const text = [
-    "You're on the list.",
-    "",
-    "thalamus is the control plane and memory for agentic work — one memory, one",
-    "trust gate, and durable jobs across swappable engines.",
-    "",
-    "We'll email you when there's a build worth self-hosting. Nothing else, and we",
-    "won't share your address.",
-    "",
-    "If you didn't sign up, ignore this — the address is only used to send that one",
-    "announcement.",
-    "",
-    "https://openthalamus.dev",
-  ].join("\n");
-
-  const html = `<!doctype html>
-<html lang="en"><body style="margin:0;padding:0;background:#0a0a0a;">
-  <div style="max-width:520px;margin:0 auto;padding:40px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#d5d5d5;font-size:15px;line-height:1.6;">
-    <p style="margin:0 0 26px;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#8a8a8a;">thalamus</p>
-    <h1 style="margin:0 0 18px;font-size:24px;line-height:1.2;letter-spacing:-0.02em;font-weight:600;color:#f2f2f2;">You're on the list.</h1>
-    <p style="margin:0 0 16px;color:#d5d5d5;">
-      thalamus is the control plane and memory for agentic work &mdash; one memory,
-      one trust gate, and durable jobs across swappable engines.
-    </p>
-    <p style="margin:0 0 16px;color:#9a9a9a;">
-      We'll email you when there's a build worth self-hosting. Nothing else, and we
-      won't share your address.
-    </p>
-    <p style="margin:0 0 30px;color:#8a8a8a;font-size:13.5px;">
-      If you didn't sign up, ignore this &mdash; the address is only used to send
-      that one announcement.
-    </p>
-    <p style="margin:0;padding-top:20px;border-top:1px solid rgba(255,255,255,0.09);">
-      <a href="https://openthalamus.dev" style="color:#c9c9c9;font-size:13px;">openthalamus.dev</a>
-    </p>
-  </div>
-</body></html>`;
-
+  const { subject, text, html } = waitlistConfirmationMail();
   return { to, subject, text, html };
 }
