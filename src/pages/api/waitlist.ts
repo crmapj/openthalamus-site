@@ -23,16 +23,21 @@ function clientIp(req: Request): string {
   );
 }
 
-function reply(req: Request, status: number, message: string) {
+type Outcome = "added" | "already" | "error";
+
+function reply(req: Request, status: number, message: string, outcome: Outcome = status < 400 ? "added" : "error") {
   const wantsJson = (req.headers.get("accept") ?? "").includes("application/json");
   if (wantsJson) {
-    return new Response(JSON.stringify({ ok: status < 400, message }), {
+    return new Response(JSON.stringify({ ok: status < 400, outcome, message }), {
       status,
       headers: { "content-type": "application/json" },
     });
   }
   // No-JS fallback: bounce back to the anchor with the outcome in the query.
-  const to = status < 400 ? "/?joined=1#waitlist" : "/?error=1#waitlist";
+  const to =
+    outcome === "added" ? "/?joined=1#waitlist"
+    : outcome === "already" ? "/?already=1#waitlist"
+    : "/?error=1#waitlist";
   return new Response(null, { status: 303, headers: { location: to } });
 }
 
@@ -141,13 +146,14 @@ export const POST: APIRoute = async ({ request }) => {
         "landing",
       );
 
-    // Same response whether it inserted or was already present — never confirm
-    // to a stranger whether a given address is on the list.
-    return reply(
-      request,
-      200,
-      info.changes > 0 ? "You're on the list." : "You're on the list.",
-    );
+    // We DO distinguish "added" from "already on the list" (Chris, 2026-08-02).
+    // That is a deliberate trade: it leaks whether an address is on the waitlist
+    // to anyone who can guess it, which for a public pre-release list is worth
+    // far less than a person knowing their second submit was not lost. The rate
+    // limiter still stops anyone enumerating at scale.
+    return info.changes > 0
+      ? reply(request, 200, "You're on the list.", "added")
+      : reply(request, 200, "You're already on the list.", "already");
   } catch (err) {
     console.error("waitlist insert failed:", err);
     return reply(request, 500, "Could not save that right now. Try again shortly.");

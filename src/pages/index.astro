@@ -5,9 +5,6 @@ const title = "thalamus — the control plane and memory for agentic work";
 const description =
   "thalamus is a self-hosted meta-layer over coding agents: one memory, one trust gate, and durable jobs across swappable engines. Join the waitlist.";
 
-// Server-rendered into the static HTML at build time, so the widget key ships
-// with zero client fetches. Empty in dev / before Turnstile is provisioned, in
-// which case the form degrades to honeypot + rate-limit only.
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 const pillars = [
@@ -17,7 +14,7 @@ const pillars = [
   },
   {
     h: "One trust gate",
-    p: "Unclear goes to the forum. Risky, external, or expensive goes to approvals. Outbound mail is draft-only. Confident own-infra work acts and logs.",
+    p: "Every action is classified before it runs. Confident and reversible work proceeds and logs; anything irreversible waits for you.",
   },
   {
     h: "A meta-harness",
@@ -28,31 +25,135 @@ const pillars = [
     p: "Web, desktop, mobile, and CLI over one server contract and one design language. Shells do not invent their own product logic.",
   },
 ];
+
+// The trust gate, drawn as proportion of *autonomy*, not invented telemetry.
+// Width encodes how much latitude the agent has, so the eye reads the gradient
+// from "acts alone" to "never acts".
+const gate = [
+  { label: "own infra", width: 100, tier: "act", text: "Acts, then logs — reversible and yours" },
+  { label: "risky / spend", width: 62, tier: "act", text: "Proposes; you approve before it runs" },
+  { label: "client work", width: 38, tier: "draft", text: "Drafts only — a human ships it" },
+  { label: "outbound mail", width: 20, tier: "draft", text: "Drafts only, never sent. No exceptions" },
+];
+
+const surfaces = [
+  { name: "Web", memory: "full", jobs: "full", approve: "full" },
+  { name: "Desktop", memory: "full", jobs: "full", approve: "full" },
+  { name: "Mobile", memory: "full", jobs: "read", approve: "full" },
+  { name: "CLI", memory: "full", jobs: "full", approve: "read" },
+];
+const mark = (v: string) =>
+  v === "full" ? { c: "tick", s: "●" } : { c: "tick-partial", s: "◐" };
 ---
 
 <Base title={title} description={description}>
   <div class="wrap">
     <div class="hero">
-      <p class="eyebrow">open source · self-hosted · pre-release</p>
-      <h1>The control plane and memory for agentic work.</h1>
-      <p class="lede">
+      <p class="eyebrow reveal">open source · self-hosted · pre-release</p>
+      <h1 class="reveal">The control plane and memory for agentic work.</h1>
+      <p class="lede reveal">
         Code is becoming cheap and abundant. Coherence, judgment, and attention are not.
         thalamus is the durable layer that remembers, routes, and delegates — while you
         keep control of everything irreversible.
       </p>
-      <p class="sub">
+      <p class="sub reveal">
         The name is the point: the thalamus is the brain's relay station. This is not the
         intelligence — it is what routes, gates, and remembers on behalf of it.
       </p>
     </div>
   </div>
 
+  <!-- ---------- the relay diagram ---------- -->
   <section>
     <div class="wrap">
-      <h2>What it does</h2>
+      <h2 class="reveal">How work moves</h2>
+      <div class="diagram reveal">
+        <svg class="diagram-wide" viewBox="4 56 634 200" role="img" aria-label="You send intent to thalamus, which holds memory and a trust gate, and routes work to swappable engines. Irreversible actions return to you for approval.">
+          <title>thalamus routes work between you and swappable engines</title>
+
+          <!-- you -->
+          <rect class="node-box" x="8" y="104" width="96" height="50" rx="8" />
+          <text class="node-label" x="56" y="128" text-anchor="middle">You</text>
+          <text class="node-sub" x="56" y="143" text-anchor="middle">INTENT</text>
+
+          <!-- in -->
+          <path class="flow-line" d="M108 129 H236" fill="none" />
+
+          <!-- thalamus core -->
+          <rect class="node-box node-box-strong" x="240" y="62" width="160" height="134" rx="10" />
+          <circle class="live-dot" cx="258" cy="80" r="3" />
+          <text class="node-label" x="320" y="92" text-anchor="middle">thalamus</text>
+          <line x1="256" y1="104" x2="384" y2="104" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+          <text class="node-sub" x="320" y="126" text-anchor="middle">ONE MEMORY</text>
+          <text class="node-sub" x="320" y="149" text-anchor="middle">TRUST GATE</text>
+          <text class="node-sub" x="320" y="172" text-anchor="middle">DURABLE JOBS</text>
+
+          <!-- out to engines: boxes are 38 tall on a 46 pitch so they never touch -->
+          <path class="flow-line" d="M404 83 H520" fill="none" />
+          <path class="flow-line" d="M404 129 H520" fill="none" />
+          <path class="flow-line" d="M404 175 H520" fill="none" />
+
+          <rect class="node-box" x="524" y="64" width="110" height="38" rx="8" />
+          <text class="node-label" x="579" y="88" text-anchor="middle">Claude</text>
+
+          <rect class="node-box" x="524" y="110" width="110" height="38" rx="8" />
+          <text class="node-label" x="579" y="134" text-anchor="middle">Codex</text>
+
+          <rect class="node-box" x="524" y="156" width="110" height="38" rx="8" />
+          <text class="node-label" x="579" y="180" text-anchor="middle">Local model</text>
+
+          <!-- approval loop back to you: dashed = never acts alone -->
+          <path d="M320 196 V232 H56 V158" fill="none"
+                stroke="rgba(255,255,255,0.22)" stroke-width="1" stroke-dasharray="3 4" />
+          <text class="node-sub" x="188" y="248" text-anchor="middle">IRREVERSIBLE → BACK TO YOU</text>
+        </svg>
+
+        <!-- Mobile gets a vertical redraw rather than a shrunk copy: the wide
+             diagram scales to ~54% at 390px, which renders its 12px labels at
+             roughly 6px. Same information, legible geometry. -->
+        <svg class="diagram-stack" viewBox="0 0 320 410" role="img" aria-label="You send intent to thalamus, which holds memory, a trust gate and durable jobs, then routes work down to Claude, Codex or a local model. Irreversible actions return to you.">
+          <rect class="node-box" x="98" y="4" width="124" height="46" rx="8" />
+          <text class="node-label" x="160" y="26" text-anchor="middle" style="font-size:15px">You</text>
+          <text class="node-sub" x="160" y="42" text-anchor="middle" style="font-size:11px">INTENT</text>
+
+          <path class="flow-line" d="M160 52 V84" fill="none" />
+
+          <rect class="node-box node-box-strong" x="34" y="88" width="252" height="112" rx="10" />
+          <circle class="live-dot" cx="52" cy="106" r="3.5" />
+          <text class="node-label" x="160" y="118" text-anchor="middle" style="font-size:16px">thalamus</text>
+          <line x1="52" y1="134" x2="268" y2="134" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+          <text class="node-sub" x="160" y="153" text-anchor="middle" style="font-size:11px">ONE MEMORY</text>
+          <text class="node-sub" x="160" y="171" text-anchor="middle" style="font-size:11px">TRUST GATE</text>
+          <text class="node-sub" x="160" y="189" text-anchor="middle" style="font-size:11px">DURABLE JOBS</text>
+
+          <path class="flow-line" d="M160 202 V236" fill="none" />
+
+          <rect class="node-box" x="34" y="240" width="252" height="40" rx="8" />
+          <text class="node-label" x="160" y="265" text-anchor="middle" style="font-size:14px">Claude</text>
+          <rect class="node-box" x="34" y="286" width="252" height="40" rx="8" />
+          <text class="node-label" x="160" y="311" text-anchor="middle" style="font-size:14px">Codex</text>
+          <rect class="node-box" x="34" y="332" width="252" height="40" rx="8" />
+          <text class="node-label" x="160" y="357" text-anchor="middle" style="font-size:14px">Local model</text>
+
+          <path d="M296 144 H308 V392 H160" fill="none"
+                stroke="rgba(255,255,255,0.22)" stroke-width="1" stroke-dasharray="3 4" />
+          <text class="node-sub" x="4" y="404" text-anchor="start" style="font-size:10px">IRREVERSIBLE → BACK TO YOU</text>
+        </svg>
+      </div>
+      <p class="sub reveal" style="margin-top:16px;font-size:14.5px;">
+        Engines are adapters. Swap the model or the harness and the memory, the job
+        history, and the trust rules stay exactly where they were.
+      </p>
+    </div>
+  </section>
+
+  <!-- ---------- pillars ---------- -->
+  <section>
+    <div class="wrap">
+      <h2 class="reveal">What it does</h2>
       <div class="grid">
         {pillars.map((p) => (
-          <article class="card">
+          <article class="card reveal">
             <h3>{p.h}</h3>
             <p>{p.p}</p>
           </article>
@@ -61,10 +162,64 @@ const pillars = [
     </div>
   </section>
 
+  <!-- ---------- the trust gate ---------- -->
+  <section>
+    <div class="wrap">
+      <h2 class="reveal">How much rope an agent gets</h2>
+      <div class="gate">
+        {gate.map((g) => (
+          <div class="gate-row reveal">
+            <span class="gate-label">{g.label}</span>
+            <div class="gate-track" data-tier={g.tier}>
+              <div class="gate-fill" style={`width:${g.width}%`} />
+              <span class="gate-text">
+                <span>{g.text}</span>
+                <span class="gate-tier">{g.tier === "act" ? "acts" : "drafts"}</span>
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p class="sub reveal" style="margin-top:18px;font-size:14.5px;">
+        Solid means it may act. <span style="border-bottom:1px dashed var(--text-dim)">Dashed</span>
+        means it drafts and stops. The bar is how far it gets on its own.
+      </p>
+    </div>
+  </section>
+
+  <!-- ---------- surface matrix ---------- -->
+  <section>
+    <div class="wrap">
+      <h2 class="reveal">One product, every surface</h2>
+      <div class="card reveal" style="padding:6px 14px;">
+        <table class="matrix">
+          <thead>
+            <tr><th>Surface</th><th>Memory</th><th>Jobs</th><th>Approvals</th></tr>
+          </thead>
+          <tbody>
+            {surfaces.map((s) => (
+              <tr>
+                <td>{s.name}</td>
+                <td><span class={mark(s.memory).c}>{mark(s.memory).s}</span></td>
+                <td><span class={mark(s.jobs).c}>{mark(s.jobs).s}</span></td>
+                <td><span class={mark(s.approve).c}>{mark(s.approve).s}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="sub reveal" style="margin-top:14px;font-size:14px;">
+        <span class="tick">●</span> full · <span class="tick-partial">◐</span> read-only today.
+        Parity is the goal; the gaps are tracked in the roadmap, not hidden.
+      </p>
+    </div>
+  </section>
+
+  <!-- ---------- waitlist ---------- -->
   <section id="waitlist">
     <div class="wrap">
-      <h2>Join the waitlist</h2>
-      <div class="signup">
+      <h2 class="reveal">Join the waitlist</h2>
+      <div class="signup reveal">
         <p style="margin:0;color:var(--text-muted);font-size:15px;max-width:56ch;">
           v0 is an early base for collaboration, not a released artifact. Leave an email and
           you will hear when there is something worth self-hosting.
@@ -101,36 +256,105 @@ const pillars = [
             />
           )}
 
-          <p class="msg" id="form-msg" role="status" aria-live="polite"></p>
           <p class="form-note">
             One email, stored to tell you about thalamus. Nothing else, no sharing.
           </p>
         </form>
+
+        <!-- Success / duplicate / error all land here, with distinct shapes. -->
+        <div class="result" id="result" role="status" aria-live="polite">
+          <svg class="result-icon" width="21" height="21" viewBox="0 0 21 21" fill="none" aria-hidden="true">
+            <circle cx="10.5" cy="10.5" r="9.5" stroke-width="1.2" />
+            <path id="result-check" class="check-path" d="M6 11 L9.3 14 L15 7.6"
+                  stroke="#f2f2f2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          </svg>
+          <div>
+            <p class="result-title" id="result-title"></p>
+            <p class="result-body" id="result-body"></p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   {turnstileSiteKey && (
-    <script
-      is:inline
-      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-      async
-      defer
-    />
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
   )}
 
   <script>
-    // Progressive enhancement: the form is a real POST and works without JS.
-    // This only upgrades it to stay on the page.
+    document.documentElement.classList.remove("no-js");
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const targets = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
+
+    // Opt in to hiding ONLY when we can guarantee we can un-hide. Anything that
+    // is never observed stays visible rather than disappearing.
+    if (!reduced && "IntersectionObserver" in window && targets.length) {
+      document.documentElement.classList.add("js-anim");
+      const revealAll = () => targets.forEach((el) => el.classList.add("in"));
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          }
+        },
+        { rootMargin: "200px 0px -5% 0px", threshold: 0.01 },
+      );
+      targets.forEach((el) => io.observe(el));
+      // Failsafe: whatever has not been reached in 2.5s is shown regardless.
+      setTimeout(revealAll, 2500);
+      window.addEventListener("beforeprint", revealAll);
+    }
+
+    // ---- form ----
     const form = document.getElementById("waitlist-form") as HTMLFormElement | null;
-    const msg = document.getElementById("form-msg");
     const btn = document.getElementById("submit-btn") as HTMLButtonElement | null;
-    if (form && msg && btn) {
+    const result = document.getElementById("result");
+    const rTitle = document.getElementById("result-title");
+    const rBody = document.getElementById("result-body");
+    const emailInput = document.getElementById("email") as HTMLInputElement | null;
+
+    const COPY: Record<string, { title: string; body: string }> = {
+      added: {
+        title: "You're on the list.",
+        body: "We'll email you when there's a build worth self-hosting. Nothing else.",
+      },
+      already: {
+        title: "You're already on the list.",
+        body: "This address was added earlier — no need to submit again. You're all set.",
+      },
+      error: {
+        title: "That didn't go through.",
+        body: "Check the address and try again.",
+      },
+    };
+
+    function show(outcome: string, bodyOverride?: string) {
+      if (!result || !rTitle || !rBody) return;
+      const copy = COPY[outcome] ?? COPY.error;
+      result.setAttribute("data-outcome", outcome);
+      rTitle.textContent = copy.title;
+      rBody.textContent = bodyOverride || copy.body;
+      result.classList.add("show");
+      if (outcome === "added" || outcome === "already") {
+        form?.classList.add("form-hidden");
+      }
+      result.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+    }
+
+    if (form && btn) {
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        msg.textContent = "";
-        msg.removeAttribute("data-state");
+        if (!emailInput?.value.trim()) {
+          show("error", "Enter an email address first.");
+          return;
+        }
         btn.disabled = true;
+        const original = btn.textContent;
+        btn.textContent = "Adding…";
         try {
           const res = await fetch("/api/waitlist", {
             method: "POST",
@@ -138,22 +362,21 @@ const pillars = [
             body: new FormData(form),
           });
           const data = await res.json().catch(() => ({}));
-          if (res.ok) {
-            msg.setAttribute("data-state", "ok");
-            msg.textContent = data.message || "You're on the list.";
-            form.reset();
-          } else {
-            msg.setAttribute("data-state", "error");
-            msg.textContent = data.message || "Something went wrong. Try again.";
-            if (window.turnstile) window.turnstile.reset();
-          }
+          show(data.outcome || (res.ok ? "added" : "error"), res.ok ? undefined : data.message);
+          if (!res.ok && (window as any).turnstile) (window as any).turnstile.reset();
         } catch {
-          msg.setAttribute("data-state", "error");
-          msg.textContent = "Network error. Try again.";
+          show("error", "Network problem — try again in a moment.");
         } finally {
           btn.disabled = false;
+          btn.textContent = original;
         }
       });
     }
+
+    // No-JS path returns with ?joined / ?already / ?error — honour it on load.
+    const q = new URLSearchParams(location.search);
+    if (q.has("joined")) show("added");
+    else if (q.has("already")) show("already");
+    else if (q.has("error")) show("error");
   </script>
 </Base>

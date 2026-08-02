@@ -244,3 +244,213 @@ button[disabled] { opacity: 0.5; cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ==================================================================== *
+ * Motion — one primitive, and everything obeys prefers-reduced-motion.
+ * `cbpulse` is the cbrain design system's only sanctioned animation.
+ * ==================================================================== */
+
+@keyframes cbpulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -22; }
+}
+
+@keyframes grow-bar {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Scroll-reveal: elements start hidden and are released by IntersectionObserver.
+   `.no-js` on <html> is removed by an inline script, so without JS everything
+   is simply visible — the content never depends on the animation running. */
+/* Content is visible by DEFAULT. Only once JS has confirmed it can observe and
+   release elements does it opt in by putting `js-anim` on <html>. A previous
+   version hid `.reveal` unconditionally in CSS, so any element the observer
+   never saw — fast scroll, anchor jump, observer failure — stayed invisible
+   forever. Two whole sections rendered blank. Never hide content on the
+   assumption that a script will later reveal it. */
+html.js-anim .reveal { opacity: 0; }
+html.js-anim .reveal.in { animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.reveal.in:nth-child(2) { animation-delay: 0.06s; }
+.reveal.in:nth-child(3) { animation-delay: 0.12s; }
+.reveal.in:nth-child(4) { animation-delay: 0.18s; }
+
+
+/* ---- diagram ---------------------------------------------------------- */
+
+.diagram {
+  background: var(--surface-raised-alt);
+  border: 1px solid var(--line-card);
+  border-radius: 12px;
+  padding: 26px 20px;
+  overflow: hidden;
+}
+.diagram svg { width: 100%; height: auto; display: block; }
+
+.flow-line {
+  stroke: var(--text-dim);
+  stroke-width: 1;
+  stroke-dasharray: 4 7;
+  animation: dash-flow 1.6s linear infinite;
+}
+.node-box {
+  fill: var(--surface-input);
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 1;
+}
+.node-box-strong { fill: var(--surface-tile); stroke: rgba(255, 255, 255, 0.28); }
+.node-label { fill: var(--text-card-title); font-size: 12px; font-family: var(--font-sans); font-weight: 500; }
+.node-sub { fill: var(--text-dim); font-size: 9.5px; font-family: var(--font-mono); letter-spacing: 0.1em; }
+.live-dot { fill: var(--text-primary); animation: cbpulse 2s ease-in-out infinite; }
+
+/* ---- the trust-gate chart -------------------------------------------- */
+
+.gate { display: grid; gap: 10px; }
+.gate-row {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+.gate-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.gate-track {
+  position: relative;
+  height: 34px;
+  background: var(--surface-input);
+  border: 1px solid var(--line-card);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.gate-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255, 255, 255, 0.07);
+  transform-origin: left;
+  transform: scaleX(0);
+  /* No hard right edge: it used to slice through the label text sitting on top
+     of the bar. The fill reads as extent on its own. */
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.16);
+}
+html.js-anim .in .gate-fill { animation: grow-bar 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+.gate-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 13px;
+  font-size: 13px;
+  color: var(--text-body);
+}
+.gate-tier {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border: 1px solid var(--line-input);
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: var(--surface-base);
+}
+.gate-track[data-tier="draft"] .gate-tier { border-style: dashed; }
+/* Autonomy tiers are shape, not colour: solid = act, dashed = draft-only. */
+.gate-track[data-tier="draft"] { border-style: dashed; }
+
+/* ---- surface matrix --------------------------------------------------- */
+
+.matrix { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.matrix th, .matrix td {
+  text-align: left;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--line-faint);
+}
+.matrix th {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+.matrix td { color: var(--text-muted); }
+.matrix td:first-child { color: var(--text-card-title); }
+.matrix tr:last-child td { border-bottom: none; }
+.tick { color: var(--text-primary); font-size: 15px; }
+.tick-partial { color: var(--text-dim); font-size: 15px; }
+
+/* ---- form: success state --------------------------------------------- */
+
+.result {
+  display: none;
+  align-items: flex-start;
+  gap: 13px;
+  margin-top: 18px;
+  padding: 17px 18px;
+  border-radius: 10px;
+  background: var(--fill-subtle);
+  border: 1px solid var(--line-strong);
+}
+.result.show { display: flex; animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.result[data-outcome="already"] { border-style: dashed; }
+.result[data-outcome="error"] { border-color: var(--error); }
+
+.result-icon { flex: none; margin-top: 1px; }
+.result-icon circle { stroke: var(--text-primary); }
+.result[data-outcome="error"] .result-icon circle { stroke: var(--error); }
+.result-title { margin: 0 0 3px; font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.result[data-outcome="error"] .result-title { color: var(--error); }
+.result-body { margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.5; }
+
+.check-path {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  transition: stroke-dashoffset 0.45s ease 0.15s;
+}
+.result.show .check-path { stroke-dashoffset: 0; }
+
+.form-hidden { display: none; }
+
+@media (max-width: 560px) {
+  .gate-row { grid-template-columns: 1fr; gap: 6px; }
+  .gate-track { height: 30px; }
+  .matrix th:nth-child(n+4), .matrix td:nth-child(n+4) { display: none; }
+  .diagram { padding: 18px 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal.in, html.js-anim .reveal { opacity: 1 !important; animation: none !important; }
+  .flow-line { animation: none !important; }
+  .live-dot { animation: none !important; }
+  .gate-fill { transform: scaleX(1) !important; animation: none !important; }
+  .check-path { stroke-dashoffset: 0 !important; transition: none !important; }
+}
+
+/* Wide diagram on desktop, vertical redraw on phones. Only one is ever in the
+   accessibility tree, so a screen reader never hears the flow twice. */
+/* Specificity note: `.diagram svg` (0,1,1) earlier in this file sets
+   display:block, which outranks a bare `.diagram-stack` (0,1,0) — the mobile
+   diagram then rendered on desktop too. Both selectors below are (0,2,x). */
+.diagram svg.diagram-stack { display: none; }
+@media (max-width: 620px) {
+  .diagram svg.diagram-wide { display: none; }
+  .diagram svg.diagram-stack { display: block; max-width: 320px; margin: 0 auto; }
+}
