@@ -88,6 +88,15 @@ check("llms.txt leads with agentic OS", /agentic OS/.test(llms.split("\n").slice
 check("llms.txt carries the bet", /## The bet/.test(llms));
 check("llms.txt links resolve to real anchors only", !/\/architecture\)|\/docs\)|\/engines\)/.test(llms));
 
+// Astro renders `<!-- -->` straight into the shipped page but strips `{/* */}`.
+// An internal note explaining a design decision — or naming someone, or
+// describing the state of a private repo — becomes public page source. Use the
+// JSX form in template bodies.
+const htmlComments = [...html.matchAll(/<!--([\s\S]*?)-->/g)].map((m) =>
+  m[1].trim().slice(0, 60),
+);
+check("no HTML comments leak into the shipped page", htmlComments.length === 0, htmlComments.join(" | "));
+
 // Dead links: every internal href must be a real anchor or file.
 const hrefs = [...html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
 check("no dead href=# links", !hrefs.some((h) => h === "#" || h === ""));

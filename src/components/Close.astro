@@ -5,7 +5,7 @@ import { site } from "../config/site";
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 ---
 
-<!--
+{/*
   The final stage. The pinned beats each resolve in a centred moment on the dot
   grid; this is the one the visitor acts in, so it uses the same staging rather
   than a fourth left-aligned card.
@@ -17,7 +17,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
   (2026-08-06) — the page is written for the release it is about to be, not for
   the state of the repository this week. The limits are still stated, but where
   someone actually asks for them: the last two answers in the FAQ above.
--->
+*/}
 <section class="close" id="get">
   <div class="close-inner shell">
     <div class="close-head reveal">
@@ -28,7 +28,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
       </p>
     </div>
 
-    <!-- Form and result share one grid cell, so swapping them never jumps the page. -->
+    {/* Form and result share one grid cell, so swapping them never jumps the page. */}
     <div class="ask-zone reveal" id="waitlist">
       <form id="waitlist-form" method="POST" action="/api/waitlist" novalidate>
         <div class="field-row">
@@ -100,7 +100,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
         </p>
       </form>
 
-      <!-- Success reads as a receipt, in the voice of the product's action log. -->
+      {/* Success reads as a receipt, in the voice of the product's action log. */}
       <div class="result" id="result" role="status" aria-live="polite">
         <svg class="result-icon" width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
           <circle class="result-ring" cx="15" cy="15" r="13.5" stroke-width="1.2"></circle>
