@@ -215,6 +215,62 @@ const attr = await evalJs(`
   };`);
 check("attribution captured the referrer", /chatgpt\.com/.test(attr.ref), `ref=${attr.ref}`);
 
+/*
+ * The write path is only exercised locally, and that is a deliberate limit
+ * rather than a gap.
+ *
+ * Against production the endpoint requires a Turnstile token, and Turnstile
+ * correctly refuses to issue one to an automated browser — that refusal is the
+ * protection working, so asserting a successful signup there would mean either
+ * weakening the protection or reporting a false failure forever. Locally the
+ * secret is unset, `turnstileOk` returns true, and the full journey through
+ * form → endpoint → SQLite is real.
+ *
+ * What production still proves: the form renders, the widget is configured
+ * interaction-only, and the whole HTTP surface is correct.
+ */
+const isLocal = /^https?:\/\/(127\.0\.0\.1|localhost)/.test(BASE);
+
+if (!isLocal) {
+  // Turnstile is injected only when the waitlist comes within two viewports, so
+  // checking from the top of an 11,000px page tests nothing but the scroll
+  // position. Scroll there and give the script time to initialise.
+  const wired = await evalJs(`
+    document.getElementById("waitlist").scrollIntoView({ block: "center", behavior: "instant" });
+    for (let i = 0; i < 40; i++) {
+      if (document.querySelector('[name="cf-turnstile-response"]')) break;
+      await new Promise(r => setTimeout(r, 250));
+    }
+    const f = document.getElementById("waitlist-form");
+    return {
+      form: !!f,
+      action: f?.getAttribute("action"),
+      email: !!document.getElementById("email"),
+      hiddenAttr: !!document.getElementById("f-ref"),
+      turnstileInit: !!document.querySelector('[name="cf-turnstile-response"]'),
+      result: !!document.getElementById("result"),
+    };`);
+  check("form is present and points at the endpoint", wired.form && wired.action === "/api/waitlist");
+  check("attribution fields are wired into the form", wired.hiddenAttr);
+  check("Turnstile initialised (hidden response field created)", wired.turnstileInit);
+  check("result container exists for the success swap", wired.result);
+  console.log(
+    "  note  write path not exercised against production — Turnstile correctly\n" +
+      "        refuses an automated browser. Run against a local server for that.",
+  );
+
+  ws.close();
+  chrome.kill();
+  await rm(PROFILE, { recursive: true, force: true, maxRetries: 3 }).catch(() => {});
+  console.log(`\n${pass} passed, ${failures.length} failed`);
+  if (failures.length) {
+    console.log("\nFailures:");
+    for (const f of failures) console.log(`  · ${f}`);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
 // Submit the form for real.
 const email = `e2e-${Date.now()}@example.com`;
 const submitted = await evalJs(`
