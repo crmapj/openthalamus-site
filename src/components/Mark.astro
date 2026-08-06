@@ -1,0 +1,32 @@
+---
+/**
+ * The thalamus mark: two leaf forms, counter-rotated — the paired thalamic
+ * lobes. Decorative everywhere it appears (the wordmark next to it carries the
+ * name), so it is always aria-hidden.
+ */
+interface Props {
+  width?: number;
+  height?: number;
+  class?: string;
+}
+const { width = 34, height = 22, class: className } = Astro.props;
+---
+
+<svg
+  width={width}
+  height={height}
+  viewBox="8 22 80 52"
+  fill="none"
+  aria-hidden="true"
+  focusable="false"
+  class={className}
+>
+  <path
+    d="M30 27 C40 27 45.5 40.7 45.5 51.2 C45.5 63.8 38.5 69 30 69 C21.5 69 14.5 63.8 14.5 51.2 C14.5 40.7 20 27 30 27 Z"
+    fill="#f2f2f2"
+    transform="rotate(-18 30 48)"></path>
+  <path
+    d="M66 27 C76 27 81.5 40.7 81.5 51.2 C81.5 63.8 74.5 69 66 69 C57.5 69 50.5 63.8 50.5 51.2 C50.5 40.7 56 27 66 27 Z"
+    fill="#f2f2f2"
+    transform="rotate(18 66 48)"></path>
+</svg>

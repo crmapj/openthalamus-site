@@ -1,0 +1,106 @@
+---
+import { site, installCommand } from "../config/site";
+
+/**
+ * Questions, phrased the way people actually type them.
+ *
+ * Deliberately **not** marked up as FAQPage. Google retired FAQ rich results
+ * for most sites on 2026-05-07 and removed the documentation in June, so the
+ * schema now buys a validation badge and nothing else. The value here is the
+ * plain one: the query string appears verbatim as a heading, immediately above
+ * a self-contained answer. Keyword alignment between query and page text is one
+ * of the few levers that replicates across models.
+ *
+ * Answers are direct and unhedged, including the unflattering one about not
+ * being able to install it yet. A vague answer gets paraphrased into something
+ * wrong; a blunt one gets quoted correctly.
+ */
+const qs = [
+  {
+    q: "What is an AI agent control plane?",
+    a: `The layer that governs how agents run rather than doing the work itself: routing tasks to engines, holding credentials, gating actions that need approval, and keeping an audit log. thalamus is that layer for coding agents — it owns memory, job identity, results, cost and resume, while Claude Code, Codex, opencode or a local model do the generating.`,
+  },
+  {
+    q: "What tools orchestrate multiple coding agents?",
+    a: `Several exist, and most are either a task board over one agent or a hosted service that owns your state. thalamus takes the other position: the control plane is self-hosted and the engines are swappable adapters behind a port, so switching model or harness leaves your memory, job history and trust rules exactly where they were.`,
+  },
+  {
+    q: "How do I share memory between Claude Code and Codex?",
+    a: `Put the memory outside both of them. Each harness keeps its own session state and forgets across restarts, so anything that must survive belongs in a store neither vendor owns. thalamus holds one memory behind a driver port and hands the relevant context to whichever engine picks up the job.`,
+  },
+  {
+    q: "Is thalamus self-hosted, and is there a cloud version?",
+    a: `Self-hosted only. There is no account, no tenancy and no hosted service to sign up for — you run it on your own hardware or you do not run it. That is a design decision, not a missing feature.`,
+  },
+  {
+    q: "How much does thalamus cost?",
+    a: `Nothing. It is free and ${site.license} licensed. Because it is self-hosted you pay for your own compute and your own model tokens, and nothing else. Spend caps are part of the trust gate, so an overnight run has a ceiling you set.`,
+  },
+  {
+    q: "Can I install and use thalamus today?",
+    a: `Not yet. v0 is pre-release: the installer (${installCommand}) and the repository are not public, and interfaces, contracts and storage layouts can still change between versions. The waitlist below is the honest answer — one email when there is a build worth running on your own box.`,
+  },
+];
+---
+
+<section class="questions" aria-labelledby="q-h">
+  <div class="shell q-inner">
+    <h2 id="q-h">Questions</h2>
+    <div class="q-grid">
+      {
+        qs.map((item) => (
+          <article class="q-item">
+            <h3>{item.q}</h3>
+            <p>{item.a}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .questions {
+    background: var(--surface-base);
+    border-top: 1px solid var(--border-faint);
+  }
+  .q-inner {
+    padding: 90px 0 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+  .q-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 34px 48px;
+  }
+  .q-item h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    font-weight: 550;
+    letter-spacing: -0.014em;
+    line-height: 1.35;
+    color: var(--text-primary);
+    text-wrap: pretty;
+  }
+  .q-item p {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.62;
+    color: var(--text-tertiary);
+    max-width: 58ch;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 860px) {
+    .q-inner {
+      padding: 62px 0 66px;
+      gap: 30px;
+    }
+    .q-grid {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+  }
+</style>

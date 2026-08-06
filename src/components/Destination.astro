@@ -1,0 +1,67 @@
+---
+/**
+ * A destination that may or may not exist yet.
+ *
+ * Live  → a real anchor to the real URL.
+ * Soon  → an anchor to #waitlist carrying a dashed SOON chip.
+ *
+ * It is deliberately never a dead `href="#"` or a disabled button. A dead link
+ * is a crawl error and a dead end for a visitor; pointing an unreleased thing
+ * at the waitlist keeps the link honest *and* useful, and it still works with
+ * JavaScript switched off. The dashed chip follows the design system's
+ * "state is shape" rule — dashed means pending, no colour required.
+ */
+import { destinations, isLive, type DestinationKey } from "../config/site";
+
+interface Props {
+  to: DestinationKey;
+  /** Override the label; defaults to the destination's own. */
+  label?: string;
+  class?: string;
+  /** Renders the label with a leading arrow, as the design's inline links do. */
+  arrow?: boolean;
+}
+
+const { to, label, class: className = "", arrow = false } = Astro.props;
+const dest = destinations[to];
+const live = isLive(to);
+const text = label ?? dest.label;
+
+const href = live ? dest.href : "#waitlist";
+const external = live && dest.external;
+---
+
+<a
+  href={href}
+  class:list={["dest", className, !live && "dest--soon"]}
+  data-dest={dest.key}
+  aria-label={live ? undefined : `${text} — ${dest.note} Join the waitlist.`}
+  {...external ? { rel: "noopener", target: "_blank" } : {}}
+>
+  {arrow && <span aria-hidden="true">→ </span>}{text}
+  {!live && <span class="soon" aria-hidden="true">soon</span>}
+</a>
+
+<style>
+  .dest {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  /* The chip carries the "not yet" meaning, so the label itself is not dimmed
+     into illegibility — it still has to read as a real destination. */
+  .soon {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    border: 1px dashed var(--border-emphasis);
+    border-radius: var(--radius-xs);
+    padding: 2px 5px;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+</style>

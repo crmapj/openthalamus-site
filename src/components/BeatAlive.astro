@@ -1,0 +1,212 @@
+---
+import Mark from "./Mark.astro";
+
+/**
+ * Beat 2 — "Something is always on."
+ *
+ * Signals arrive from the left, route through the relay, fan out to whichever
+ * engine is free, and accrue as a ticker. The whole thing then absorbs into the
+ * node for the payoff frame.
+ *
+ * Coordinates live in `--x` / `--y` (unitless percentages) so one declaration
+ * serves both CSS positioning and the scroll engine's absorption maths.
+ */
+const sources = [
+  { label: "mail", x: 8, y: 18 },
+  { label: "PR review", x: 8, y: 50 },
+  { label: "voice note", x: 8, y: 82 },
+];
+
+/**
+ * `resting` is what the engine shows before any scroll drives it — so it is
+ * what mobile, reduced-motion and no-JS visitors see. It is set to the composed
+ * mid-beat frame rather than all-idle, because "something is always on" reads
+ * false next to three idle engines. The scroll engine overwrites this on its
+ * first frame, so the motion path is unaffected.
+ */
+const engines = [
+  { label: "Codex", x: 90, y: 18, resting: "● running" },
+  { label: "Claude", x: 90, y: 50, resting: "● running" },
+  { label: "Cursor", x: 90, y: 82, resting: "idle" },
+];
+
+const queued = [
+  { label: "calendar", x: 3, y: 34 },
+  { label: "linear issue", x: 3.5, y: 66 },
+];
+
+const ticker = [
+  { time: "03:41", what: "draft PR #218 opened", who: "codex" },
+  { time: "04:15", what: "nightly brief assembled", who: "clock" },
+  { time: "05:02", what: "issue triage · 9 sorted", who: "claude" },
+  { time: "06:02", what: "email to Meridian", who: "draft only" },
+  { time: "06:48", what: "call notes transcribed", who: "whisper" },
+];
+
+const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
+---
+
+<section class="beat beat--alive" id="alive" aria-labelledby="alive-h">
+  <div class="beat-intro shell">
+    <h2 id="alive-h" class="reveal">Something is always on.</h2>
+    <p class="sr-only">
+      Work arrives from mail, pull-request reviews, voice notes, your calendar and your
+      issue tracker. thalamus routes each one to whichever coding engine is free —
+      Codex, Claude or Cursor — and records what happened.
+    </p>
+  </div>
+
+  <div class="pin" data-beat="alive" style="--pin-vh:280vh">
+    <div class="stage">
+      <div class="field">
+        <div class="diagram" id="alive-diagram">
+          <svg id="alive-svg" class="diagram-svg" aria-hidden="true"><g id="alive-paths"></g></svg>
+
+          <div class="core" aria-hidden="true">
+            <span class="core-ring core-ring--outer"></span>
+            <span class="core-ring core-ring--inner"></span>
+            <span class="core-dot"></span>
+          </div>
+          <span class="core-label">thalamus</span>
+
+          <div class="rail rail--in">
+            {
+              sources.map((s) => (
+                <div class="node js-source" style={`--x:${s.x};--y:${s.y}`}>
+                  <div class="node-body">{s.label}</div>
+                </div>
+              ))
+            }
+            {
+              queued.map((q) => (
+                <div class="node js-queued" style={`--x:${q.x};--y:${q.y}`}>
+                  <div class="node-body node-body--queued">
+                    <span>{q.label}</span>
+                    <span class="queued-tag">queued</span>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="rail rail--out">
+            {
+              engines.map((e) => (
+                <div class="node js-engine" style={`--x:${e.x};--y:${e.y}`}>
+                  <div class="node-body node-body--engine">
+                    <span class="engine-name">{e.label}</span>
+                    <span class="engine-state">{e.resting}</span>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        <ol class="ticker">
+          {
+            ticker.map((t) => (
+              <li class="tick js-tick">
+                <span class="tick-time">{t.time}</span>
+                <span class="tick-what">{t.what}</span>
+                <span class="tick-who">{t.who}</span>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="payoff" id="alive-payoff">
+          <span class="payoff-label">While you were out</span>
+          <div class="payoff-bar">
+            {
+              payoff.map((cell, i) => (
+                <>
+                  {i > 0 && <span class="payoff-rule" aria-hidden="true" />}
+                  <span class="payoff-cell">
+                    {i === 0 && <span class="pulse-dot" aria-hidden="true" />}
+                    {cell}
+                  </span>
+                </>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Rails group the nodes semantically without affecting desktop layout — the
+     nodes stay absolutely positioned against `.diagram`. On mobile the rails
+     become real flex rows and the constellation reflows into legible stacks. */
+  .rail {
+    display: contents;
+  }
+
+  .node {
+    left: calc(var(--x) * 1%);
+    top: calc(var(--y) * 1%);
+  }
+
+  /* Reduced-motion and no-JS desktop keep the constellation, so the diagram
+     needs a height of its own once the sticky stage stops supplying one. */
+  :global(.pin:not(.pin--motion)) .diagram {
+    min-height: 440px;
+  }
+  :global(.pin:not(.pin--motion)) .payoff {
+    position: static;
+    transform: none;
+    align-items: flex-start;
+    margin-top: 28px;
+  }
+
+  @media (max-width: 860px) {
+    /* The constellation cannot survive a phone. Same DOM, same words — redrawn
+       as three labelled stacks, which is legible where a 54%-scaled diagram is
+       not. */
+    .diagram,
+    :global(.pin:not(.pin--motion)) .diagram {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .diagram-svg,
+    .core-label {
+      display: none;
+    }
+    .core {
+      position: static;
+      transform: none;
+      order: 2;
+      height: 44px;
+    }
+    .rail {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .rail--in {
+      order: 1;
+    }
+    .rail--out {
+      order: 3;
+    }
+    .node {
+      position: static;
+      transform: none;
+    }
+    .node-body--engine {
+      flex-direction: row;
+      align-items: center;
+      gap: 9px;
+    }
+    .ticker {
+      margin-top: 8px;
+    }
+  }
+</style>

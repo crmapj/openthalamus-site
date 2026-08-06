@@ -1,0 +1,136 @@
+---
+import InstallBlock from "./InstallBlock.astro";
+
+/**
+ * "Last night" — the product's actual promise, shown as artefacts rather than
+ * claimed as adjectives. The middle column sits 18px low, per the design's
+ * staggered grid; the offset is dropped below 860px where the grid reflows.
+ *
+ * The names here are illustrative. Deliberately fictional: this is a public
+ * page, and a real client name on it would be a client-data leak.
+ */
+const night = [
+  {
+    kind: "Draft PR",
+    time: "03:41",
+    title: "#218 memory port · resume",
+    body: "diff",
+  },
+  { kind: "Brief", time: "04:15", title: "Two minutes, nine things", body: "bars", drop: true },
+  { kind: "Research", time: "04:58", title: "Three competitors moved", body: "14 sources · cited" },
+  {
+    kind: "Call",
+    time: "06:02",
+    title: "Meridian · transcribed",
+    body: "2 decisions · 1 draft reply",
+  },
+  { kind: "Tomorrow", time: "waiting for you", title: "", body: "blocks", drop: true },
+  { kind: "Spend", time: "$12.40", title: "", body: "spark" },
+];
+---
+
+<header class="hero shell">
+  <div class="hero-copy">
+    <p class="eyebrow rise" style="--delay:120ms">
+      The self-hosted agent OS · Open source
+    </p>
+
+    <h1 class="rise" style="--delay:240ms">
+      <span class="dim">There will be many like it.</span><br />This one is yours.
+    </h1>
+
+    <p class="lede rise" style="--delay:560ms">
+      Your agents, your inbox, your backlog, your research — run around the clock on
+      hardware you own. You come back to a finished desk.
+    </p>
+
+    <div class="rise" style="--delay:760ms">
+      <InstallBlock animate />
+    </div>
+  </div>
+
+  <!-- The overnight run, as artefacts. -->
+  <section class="night" aria-labelledby="night-h">
+    <div class="night-head rise" style="--delay:950ms">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      <h2 id="night-h">Last night · 03:00 – 07:00</h2>
+    </div>
+
+    {
+      night.map((c, i) => (
+        <article
+          class:list={["night-card", "rise", c.drop && "night-card--drop"]}
+          style={`--delay:${1000 + i * 150}ms`}
+        >
+          <div class="night-card-top">
+            <span class="night-kind">{c.kind}</span>
+            <span class="night-time">{c.time}</span>
+          </div>
+
+          {c.title && <p class="night-title">{c.title}</p>}
+
+          {c.body === "diff" && (
+            <p class="night-meta">
+              <span class="diff-add">+812</span> <span class="diff-remove">−204</span> · codex
+            </p>
+          )}
+
+          {c.body === "bars" && (
+            <div class="bar-stack" aria-hidden="true">
+              <span style="background:rgba(255,255,255,0.20)" />
+              <span style="background:rgba(255,255,255,0.14);width:78%" />
+              <span style="background:rgba(255,255,255,0.10);width:52%" />
+            </div>
+          )}
+
+          {c.body === "blocks" && (
+            <div class="block-stack" aria-hidden="true">
+              <span style="height:9px;background:rgba(255,255,255,0.16)" />
+              <span style="height:16px;background:rgba(255,255,255,0.28)" />
+              <span style="height:9px;background:rgba(255,255,255,0.10)" />
+            </div>
+          )}
+
+          {c.body === "spark" && (
+            <>
+              <div class="spark" aria-hidden="true">
+                <span style="height:34%;background:rgba(255,255,255,0.14)" />
+                <span style="height:56%;background:rgba(255,255,255,0.18)" />
+                <span style="height:44%;background:rgba(255,255,255,0.16)" />
+                <span style="height:82%;background:rgba(255,255,255,0.30)" />
+                <span style="height:64%;background:rgba(255,255,255,0.20)" />
+                <span style="height:38%;background:rgba(255,255,255,0.14)" />
+              </div>
+              <p class="night-meta">of $40 cap</p>
+            </>
+          )}
+
+          {typeof c.body === "string" &&
+            !["diff", "bars", "blocks", "spark"].includes(c.body) && (
+              <p class="night-meta">{c.body}</p>
+            )}
+        </article>
+      ))
+    }
+  </section>
+</header>
+
+<style>
+  /* The grid heading is a real h2 for document structure, but it must read as
+     the design's mono eyebrow, not as a section title. */
+  .night-head h2 {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .night-title {
+    margin: 0;
+  }
+  .night-meta {
+    margin: 0;
+  }
+</style>

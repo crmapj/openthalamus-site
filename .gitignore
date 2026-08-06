@@ -6,3 +6,5 @@ dist/
 *.db-wal
 .env
 .DS_Store
+.og-build/
+.qa*/

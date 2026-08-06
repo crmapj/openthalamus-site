@@ -1,0 +1,141 @@
+---
+import { site } from "../config/site";
+
+/**
+ * The direct answer, high on the page, in plain declarative sentences.
+ *
+ * This section exists because of what the 2026 evidence actually says about
+ * being retrieved and cited. In a 252,000-trial controlled study across six
+ * models, the factors that moved citation were topical relevance, recency,
+ * **concrete specifications**, **explicit price**, and **confident, non-hedged
+ * claims** — while formatting and visual structure barely registered. So this
+ * is a spec table and a set of assertions, not a paragraph of adjectives.
+ *
+ * It is also the answer to the entity problem: "thalamus" is a brain structure
+ * with an enormous prior. The page has to say, unambiguously and early, which
+ * thalamus this is.
+ */
+const specs = [
+  { k: "What it is", v: "A control plane and memory layer for agentic work" },
+  { k: "Price", v: "Free — you pay only for your own compute and model tokens" },
+  { k: "Licence", v: `${site.license}`, href: site.licenseUrl },
+  { k: "Hosting", v: "Self-hosted only. No account, no tenancy, no hosted service" },
+  { k: "Runs on", v: "Linux and macOS · Node.js / TypeScript" },
+  { k: "Engines", v: "Claude Code, Codex, opencode, local models — swappable adapters" },
+  { k: "Surfaces", v: "Web, desktop, iOS, CLI over one server contract" },
+  { k: "Status", v: "Pre-release (v0) — interfaces can still change" },
+];
+---
+
+<section class="define" id="what" aria-labelledby="what-h">
+  <div class="shell define-inner">
+    <h2 id="what-h" class="define-h">
+      <strong>thalamus is a self-hosted control plane and memory for agentic work.</strong>
+      It sits above coding agents as a meta-harness: one memory that survives sessions
+      and engine swaps, one trust gate that classifies every action before it runs, and
+      durable jobs that outlive restarts.
+    </h2>
+
+    <p class="define-note">
+      The name is literal. The thalamus is the brain's relay and routing station —
+      nearly everything on its way to the cortex passes through it. This is not the
+      intelligence. It is what routes, gates and remembers on its behalf.
+    </p>
+
+    <dl class="specs">
+      {
+        specs.map((s) => (
+          <div class="spec">
+            <dt>{s.k}</dt>
+            <dd>{s.href ? <a href={s.href} rel="license noopener" target="_blank">{s.v}</a> : s.v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .define {
+    background: var(--surface-base);
+    border-top: 1px solid var(--border-faint);
+  }
+  .define-inner {
+    padding: 84px 0 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* A heading in the document outline, but set as a lede — the sentence is the
+     content, and it should read as a statement rather than a section title. */
+  .define-h {
+    margin: 0;
+    font-size: clamp(19px, 2.2vw, 25px);
+    line-height: 1.5;
+    font-weight: 400;
+    letter-spacing: -0.012em;
+    color: var(--text-tertiary);
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+  .define-h strong {
+    color: var(--text-primary);
+    font-weight: 550;
+  }
+
+  .define-note {
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--text-faint);
+    max-width: 62ch;
+    text-wrap: pretty;
+  }
+
+  .specs {
+    margin: 14px 0 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 40px;
+    border-top: 1px solid var(--border-faint);
+  }
+  .spec {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 16px;
+    align-items: baseline;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .spec dt {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .spec dd {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+  .spec dd a {
+    border-bottom-color: var(--border-subtle);
+  }
+
+  @media (max-width: 860px) {
+    .define-inner {
+      padding: 56px 0 62px;
+    }
+    .specs {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .spec {
+      grid-template-columns: 88px 1fr;
+      gap: 12px;
+    }
+  }
+</style>

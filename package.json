@@ -8,7 +8,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "start": "node ./dist/server/entry.mjs"
+    "start": "node ./dist/server/entry.mjs",
+    "assets": "node scripts/build-og.mjs && node scripts/build-icons.mjs",
+    "qa:shots": "node scripts/qa-shots.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^9.2.2",
@@ -18,6 +20,7 @@
     "nodemailer": "^9.0.3"
   },
   "devDependencies": {
-    "@types/nodemailer": "^8.0.1"
+    "@types/nodemailer": "^8.0.1",
+    "sharp": "^0.34.4"
   }
 }

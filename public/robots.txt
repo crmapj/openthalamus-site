@@ -1,5 +1,23 @@
+# https://openthalamus.dev/robots.txt
+#
+# thalamus is open source and pre-release. We want maximum reach into search
+# indexes, AI answer engines, coding agents, and training corpora. Everything
+# except the API surface is open to every crawler, human or machine.
+#
+# There are deliberately no per-bot Allow: groups. Under RFC 9309 a crawler
+# obeys only the single most specific matching group and ignores User-agent: *
+# entirely once a named group matches — so a named "Allow: /" group without its
+# own Disallow would silently hand that bot the API surface. A permissive
+# wildcard already allows every crawler; naming them adds risk, not access.
+
 User-agent: *
 Allow: /
 Disallow: /api/
+
+# Cloudflare / contentsignals.org — explicit, maximally permissive intent.
+#   search   = index this and link to it
+#   ai-input = use this as direct input to AI answers (RAG / grounding)
+#   ai-train = use this to train models
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
 
 Sitemap: https://openthalamus.dev/sitemap-index.xml

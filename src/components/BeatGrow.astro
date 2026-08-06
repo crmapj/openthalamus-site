@@ -1,0 +1,201 @@
+---
+import Mark from "./Mark.astro";
+
+/**
+ * Beat 3 — "Starts empty. Grows into anything."
+ *
+ * Four waves of plugins install outward from a bare core, the terminal narrates
+ * each wave, and the whole constellation then folds back into the mark for the
+ * closing line. `data-wave` / `data-k` drive the stagger; `--x` / `--y` place
+ * the chip and feed the engine's reach maths.
+ */
+const chips = [
+  { label: "Gmail", wave: 0, k: 0, x: 50, y: 25 },
+  { label: "memory-gbrain", wave: 0, k: 1, x: 70.8, y: 62.5 },
+  { label: "Calendar", wave: 0, k: 2, x: 29.2, y: 62.5 },
+  { label: "harness-codex", wave: 1, k: 0, x: 75.5, y: 25.25 },
+  { label: "harness-claude", wave: 1, k: 1, x: 50, y: 85 },
+  { label: "Linear", wave: 1, k: 2, x: 24.5, y: 25.25 },
+  { label: "Attio", wave: 2, k: 0, x: 86, y: 50 },
+  { label: "GitHub PRs", wave: 2, k: 1, x: 14, y: 50 },
+  { label: "Morning brief", wave: 2, k: 2, x: 67, y: 9.35 },
+  { label: "habit-coach", wave: 3, k: 0, x: 33, y: 9.35 },
+  { label: "podcaster", wave: 3, k: 1, x: 11, y: 66.8 },
+  { label: "personal-finances", wave: 3, k: 2, x: 89, y: 66.8 },
+];
+
+const labels = [
+  "first, the basics",
+  "then, the hands",
+  "then, your workflow",
+  "then one that didn't exist an hour ago",
+];
+---
+
+<section class="beat beat--grow" id="plugins" aria-labelledby="grow-h">
+  <div class="beat-intro shell">
+    <h2 id="grow-h" class="reveal">Starts empty. Grows into anything.</h2>
+    <p class="beat-sub reveal">
+      Every capability is a plugin, one command away — official, community, or written
+      by you in an afternoon. Watch a fresh install grow into a full system.
+    </p>
+  </div>
+
+  <div class="pin" data-beat="grow" style="--pin-vh:400vh">
+    <div class="stage">
+      <div class="grow-wrap">
+        <div class="grow-head" id="grow-head">
+          <p class="grow-count" id="grow-count">Plugins installed · 0</p>
+          {labels.map((l) => <p class="grow-label js-grow-label">{l}</p>)}
+        </div>
+
+        <div class="grow-field" id="grow-field">
+          <svg id="grow-svg" class="diagram-svg" aria-hidden="true"><g id="grow-lines"></g></svg>
+
+          <div class="grow-core core" id="grow-core" aria-hidden="true">
+            <span class="core-ring"></span>
+            <span class="core-dot"></span>
+          </div>
+
+          <div class="grow-mark" id="grow-mark" aria-hidden="true">
+            <Mark width={148} height={96} />
+          </div>
+
+          <ul class="chip-list">
+            {
+              chips.map((c) => (
+                <li
+                  class="chip js-chip"
+                  data-wave={c.wave}
+                  data-k={c.k}
+                  style={`--x:${c.x};--y:${c.y}`}
+                >
+                  <span class="chip-body">{c.label}</span>
+                </li>
+              ))
+            }
+          </ul>
+
+          <div class="grow-final" id="grow-final">
+            <h2>Yours means yours.</h2>
+            <p>
+              No account. No tenancy. No relay you didn't start.<br />
+              Everything you just built runs on a disk you own.
+            </p>
+          </div>
+        </div>
+
+        <div class="grow-term" id="grow-term">
+          <p class="grow-cmd js-cmd" data-at="0.02">
+            <span class="prompt-sigil" aria-hidden="true">$</span>
+            <code>thalamus install @official/memory-gbrain @official/gmail @official/calendar</code>
+            <span class="grow-caret" aria-hidden="true"></span>
+          </p>
+          <p class="grow-cmd js-cmd" data-at="0.19">
+            <span class="prompt-sigil" aria-hidden="true">$</span>
+            <code>thalamus install @official/harness-codex @official/harness-claude @official/linear</code>
+            <span class="grow-caret" aria-hidden="true"></span>
+          </p>
+          <p class="grow-cmd js-cmd" data-at="0.37">
+            <span class="prompt-sigil" aria-hidden="true">$</span>
+            <code>thalamus install @official/attio @official/github @official/brief</code>
+            <span class="grow-caret" aria-hidden="true"></span>
+          </p>
+          <p class="grow-cmd js-cmd" data-at="0.51">
+            <span class="agent-prompt" aria-hidden="true">codex ›</span>
+            <code class="agent-said">"create a thalamus plugin to track my personal finances"</code>
+            <span class="grow-caret" aria-hidden="true"></span>
+          </p>
+          <p class="grow-cmd js-cmd" data-at="0.555">
+            <span class="prompt-sigil" aria-hidden="true">$</span>
+            <code
+              >thalamus install @community/habit-coach @community/podcaster
+              ./plugins/personal-finances</code
+            >
+            <span class="comment">&nbsp;# codex wrote the last one just now</span>
+            <span class="grow-caret" aria-hidden="true"></span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .chip-list {
+    display: contents;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .chip {
+    left: calc(var(--x) * 1%);
+    top: calc(var(--y) * 1%);
+  }
+
+  /* Static / no-JS: the fold has not happened, so the mark stays hidden and the
+     closing line sits in normal flow beneath the terminal. */
+  :global(.pin:not(.pin--motion)) .grow-mark {
+    display: none;
+  }
+  :global(.pin:not(.pin--motion)) .grow-final {
+    position: static;
+    transform: none;
+    margin: 30px auto 0;
+  }
+  :global(.pin:not(.pin--motion)) .grow-label {
+    display: none;
+  }
+  :global(.pin:not(.pin--motion)) .grow-head {
+    height: 30px;
+  }
+
+  @media (max-width: 860px) {
+    /* The radial constellation collapses into a wrapped list — the plugin names
+       are the content, their coordinates are not. */
+    .grow-field {
+      height: auto;
+      min-height: 0;
+    }
+    #grow-svg,
+    .grow-core,
+    .grow-mark {
+      display: none;
+    }
+    .chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 0 0;
+    }
+    .chip {
+      position: static;
+      transform: none;
+      opacity: 1 !important;
+    }
+    .grow-final {
+      position: static;
+      transform: none;
+      margin: 34px auto 0;
+      opacity: 1 !important;
+    }
+    .grow-head {
+      height: auto;
+      min-height: 26px;
+    }
+    .grow-label {
+      display: none;
+    }
+    .grow-count {
+      position: static;
+      transform: none;
+      text-align: center;
+    }
+    .grow-term {
+      font-size: 11px;
+      padding: 12px 12px;
+    }
+  }
+</style>

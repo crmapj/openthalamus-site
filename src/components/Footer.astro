@@ -1,0 +1,22 @@
+---
+import Mark from "./Mark.astro";
+import Destination from "./Destination.astro";
+import { site } from "../config/site";
+---
+
+<footer class="site-footer">
+  <div class="footer-inner shell">
+    <div class="footer-brand">
+      <Mark />
+      <span class="footer-line">One brain. A fleet of hands.</span>
+    </div>
+
+    <div class="footer-links">
+      <Destination to="docs" />
+      <Destination to="github" />
+      <a href={site.licenseUrl} rel="license noopener" target="_blank">{site.license}</a>
+    </div>
+
+    <span class="footer-meta">{site.status}</span>
+  </div>
+</footer>

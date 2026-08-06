@@ -1,0 +1,19 @@
+---
+import Mark from "./Mark.astro";
+import Destination from "./Destination.astro";
+import { site } from "../config/site";
+---
+
+<nav class="nav shell" aria-label="Primary">
+  <a class="nav-brand" href="/" aria-label={`${site.name} — home`}>
+    <Mark />
+    <span class="wordmark">{site.name}</span>
+  </a>
+  <span class="pulse-dot" aria-hidden="true"></span>
+  <span class="nav-spacer"></span>
+  <div class="nav-links">
+    <Destination to="architecture" />
+    <Destination to="docs" />
+    <Destination to="github" />
+  </div>
+</nav>

@@ -1,0 +1,67 @@
+---
+/**
+ * The install command.
+ *
+ * While `AVAILABLE.install` is false the command is shown but explicitly marked
+ * SOON, and the copy button is disabled — handing someone a one-liner that
+ * 404s is worse than not offering it. The command itself stays visible because
+ * it communicates the product's shape (self-hosted, one command, no account)
+ * better than any sentence would.
+ *
+ * Flip `AVAILABLE.install` in src/config/site.ts and the chip disappears, the
+ * copy button arms itself, and the `<code>` becomes copyable. Nothing else.
+ */
+import { installCommand, isLive } from "../config/site";
+
+interface Props {
+  /** The hero copy types itself on; the closing CTA does not. */
+  animate?: boolean;
+  deep?: boolean;
+  class?: string;
+}
+const { animate = false, deep = false, class: className = "" } = Astro.props;
+const live = isLive("install");
+const len = installCommand.length;
+---
+
+<div
+  class:list={["terminal", deep && "terminal--deep", className]}
+  style={`--type-width:${len}ch`}
+>
+  <span class="terminal-line">
+    <span class="prompt-sigil" aria-hidden="true">$</span>
+    <code
+      class:list={["terminal-cmd", animate && "type-on"]}
+      style={animate ? `animation-timing-function: steps(${len})` : undefined}>{installCommand}</code
+    >
+    {animate && <span class="caret" aria-hidden="true" />}
+  </span>
+
+  {
+    live ? (
+      <button class="copy-btn" type="button" data-copy={installCommand}>
+        Copy
+      </button>
+    ) : (
+      <span class="soon-chip" title="The installer ships with v0.">
+        Coming soon
+      </span>
+    )
+  }
+</div>
+
+<style>
+  .soon-chip {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    border: 1px dashed var(--border-emphasis);
+    border-radius: var(--radius-xs);
+    padding: 4px 7px;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+</style>

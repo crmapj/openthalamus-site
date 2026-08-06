@@ -1,0 +1,79 @@
+---
+import Destination from "./Destination.astro";
+
+/**
+ * Beat 4 — "Under everything, a kernel."
+ *
+ * The four layers stack in, then the UI fill recedes until only the kernel's
+ * hairline is left and its ten nouns boot one by one. The "eleventh needs a
+ * proposal" line is the actual governance rule, not a slogan: the kernel's
+ * surface area is fixed by design.
+ */
+const layers = [
+  { name: "Shells", items: ["web", "desktop", "ios", "cli"] },
+  { name: "Plugins", items: ["surfaces", "sources", "skills", "harnesses"] },
+  { name: "Drivers", items: ["memory", "model", "transport", "storage"] },
+];
+
+const nouns = [
+  "authority",
+  "action log",
+  "trust gate",
+  "jobs",
+  "memory port",
+  "resource registry",
+  "RPC registry",
+  "plugin lifecycle",
+  "clock",
+  "settlement receipts",
+];
+---
+
+<section class="beat beat--kernel" id="architecture" aria-labelledby="kernel-h">
+  <div class="pin" data-beat="kernel" style="--pin-vh:200vh">
+    <div class="stage">
+      <div class="kernel-grid">
+        <div class="kernel-copy">
+          <h2 id="kernel-h" class="reveal">Under everything, a kernel.</h2>
+          <p class="beat-sub reveal">
+            One memory that never resets. One gate with a dial, not popups. One log that
+            answers for the night. Swappable engines, drivers, and plugins on top — an OS
+            built to be built on.
+          </p>
+          <div class="kernel-links reveal">
+            <Destination to="architecture" arrow />
+            <Destination to="docs" label="Plugin standard" arrow />
+            <Destination to="github" arrow />
+          </div>
+        </div>
+
+        <div class="stack" id="kernel-stack">
+          <div class="layer js-layer">
+            <span class="layer-name">{layers[0].name}</span>
+            {layers[0].items.map((i) => <span class="layer-item">{i}</span>)}
+          </div>
+
+          <div class="layer js-layer">
+            <span class="layer-name">{layers[1].name}</span>
+            {layers[1].items.map((i) => <span class="layer-item">{i}</span>)}
+          </div>
+
+          <div class="layer layer--kernel js-layer">
+            <div class="layer-kernel-top">
+              <span class="layer-name">Kernel</span>
+              <span class="kernel-rule">Ten nouns · an eleventh needs a proposal</span>
+            </div>
+            <ul class="nouns">
+              {nouns.map((n) => <li class="noun js-noun">{n}</li>)}
+            </ul>
+          </div>
+
+          <div class="layer js-layer">
+            <span class="layer-name">{layers[2].name}</span>
+            {layers[2].items.map((i) => <span class="layer-item">{i}</span>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
