@@ -5,56 +5,30 @@ import { site } from "../config/site";
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 ---
 
+<!--
+  The final stage. The pinned beats each resolve in a centred moment on the dot
+  grid; this is the one the visitor acts in, so it uses the same staging rather
+  than a fourth left-aligned card.
+
+  Hierarchy is decided rather than averaged: the form is the ending, and the
+  install command, assurances and honest bit are metadata demoted below a rule.
+-->
 <section class="close" id="get">
   <div class="close-inner shell">
-    <div class="reveal">
-      <InstallBlock deep />
+    <div class="close-head reveal">
+      <p class="eyebrow">Waitlist · pre-release</p>
+      <h2 class="close-h">Get told when it's<br />worth self-hosting.</h2>
+      <p class="close-sub">
+        One email when there is a build worth running on your own box. No drip
+        sequence, no sharing, no other use.
+      </p>
     </div>
 
-    <p class="assurances reveal">
-      <span>Default-deny</span><span class="sep" aria-hidden="true">·</span>
-      <span>Spend caps</span><span class="sep" aria-hidden="true">·</span>
-      <span>Every action logged</span><span class="sep" aria-hidden="true">·</span>
-      <span>{site.license} licensed</span><span class="sep" aria-hidden="true">·</span>
-      <a href="#honest">→ the honest bit</a>
-    </p>
-
-    <!-- Stating the pre-release position plainly, in the visitor's own interest.
-         It is also the single most-quoted kind of passage when an answer engine
-         is asked "is X ready to use" — vague marketing gets paraphrased into
-         something wrong; a direct sentence gets quoted correctly. -->
-    <details class="honest" id="honest">
-      <summary>The honest bit</summary>
-      <div class="honest-body">
-        <p>
-          thalamus is <strong>pre-release</strong>. v0 is an early base for
-          collaboration, not a finished artefact. Interfaces, contracts and storage
-          layouts can still change between versions, and there is no upgrade guarantee
-          across them yet.
-        </p>
-        <p>
-          The plugin host runs a bounded reference adapter — it does not yet load
-          arbitrary third-party code, and it is not an untrusted-code sandbox. Community
-          plugins stay quarantined until that boundary is real.
-        </p>
-        <p>
-          It is self-hosted by design: there is no account, no tenancy, and no hosted
-          service to sign up for. You run it on your own hardware, or you do not run it.
-        </p>
-      </div>
-    </details>
-
-    <!-- The waitlist is the live conversion while the installer is unreleased. -->
-    <div class="waitlist reveal" id="waitlist">
-      <h2>Get told when it's worth self-hosting</h2>
-      <p class="waitlist-note">
-        One email when there is a build worth running on your own box. No drip sequence,
-        no sharing, no other use.
-      </p>
-
+    <!-- Form and result share one grid cell, so swapping them never jumps the page. -->
+    <div class="ask-zone reveal" id="waitlist">
       <form id="waitlist-form" method="POST" action="/api/waitlist" novalidate>
         <div class="field-row">
-          <label for="email" class="hp">Email address</label>
+          <label for="email" class="sr-only">Email address</label>
           <input
             id="email"
             name="email"
@@ -73,90 +47,113 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
           <input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
         </div>
 
+        {/*
+          Attribution, captured on arrival and carried to submit. Answer engines
+          are the channel that matters for this product and most of them send no
+          UTM at all, so the referrer host is the real signal.
+        */}
+        <input type="hidden" name="ref" id="f-ref" />
+        <input type="hidden" name="utm" id="f-utm" />
+        <input type="hidden" name="landing" id="f-landing" />
+
         {
+          /*
+            Managed widget in `interaction-only` mode: it renders nothing while
+            the non-interactive check runs — which passes silently for almost
+            everyone — and only materialises as a checkbox when Cloudflare
+            genuinely needs one. Full managed-tier protection, no permanent
+            branded box sitting in a monochrome page. An invisible-type widget
+            was rejected: it cannot escalate to interaction, so a hardened
+            browser or VPN would hard-fail with no recourse, on the site's only
+            conversion.
+          */
           turnstileSiteKey && (
             <div
               class="cf-turnstile"
               data-sitekey={turnstileSiteKey}
               data-theme="dark"
               data-size="flexible"
-              style="margin-top:16px;"
+              data-appearance="interaction-only"
             />
           )
         }
 
+        <p class="form-err" id="form-err" hidden></p>
+
         <p class="form-note">
-          One email, stored to tell you about thalamus. Nothing else, no sharing.
+          One email, stored to tell you about thalamus. Nothing else, no sharing.{" "}
+          {
+            turnstileSiteKey && (
+              <>
+                Protected by{" "}
+                <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener" target="_blank">
+                  Cloudflare Turnstile
+                </a>
+                .
+              </>
+            )
+          }
         </p>
       </form>
 
+      <!-- Success reads as a receipt, in the voice of the product's action log. -->
       <div class="result" id="result" role="status" aria-live="polite">
-        <svg class="result-icon" width="21" height="21" viewBox="0 0 21 21" fill="none" aria-hidden="true">
-          <circle cx="10.5" cy="10.5" r="9.5" stroke-width="1.2"></circle>
+        <svg class="result-icon" width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+          <circle class="result-ring" cx="15" cy="15" r="13.5" stroke-width="1.2"></circle>
           <path
-            id="result-check"
             class="check-path"
-            d="M6 11 L9.3 14 L15 7.6"
-            stroke="#f2f2f2"
+            d="M9 15.5 L13.4 19.8 L21.4 10.6"
             stroke-width="1.6"
             stroke-linecap="round"
             stroke-linejoin="round"
             fill="none"></path>
         </svg>
-        <div>
-          <p class="result-title" id="result-title"></p>
-          <p class="result-body" id="result-body"></p>
-        </div>
+        <p class="result-title" id="result-title"></p>
+        <p class="result-body" id="result-body"></p>
+        <p class="result-receipt" id="result-receipt"></p>
       </div>
+    </div>
+
+    <span class="close-rule reveal" aria-hidden="true"></span>
+
+    <div class="close-meta reveal">
+      <InstallBlock deep />
+
+      <p class="assurances">
+        <span>Default-deny</span><span class="sep" aria-hidden="true">·</span>
+        <span>Spend caps</span><span class="sep" aria-hidden="true">·</span>
+        <span>Every action logged</span><span class="sep" aria-hidden="true">·</span>
+        <span>{site.license} licensed</span>
+      </p>
+
+      <!-- The pre-release position, stated plainly and in the visitor's interest.
+           It is also the passage an answer engine quotes when asked "is this
+           ready" — a vague answer gets paraphrased into something wrong. -->
+      <details class="honest" id="honest">
+        <summary>The honest bit</summary>
+        <div class="honest-body">
+          <p>
+            The OS claim is about shape, not maturity. The kernel, the trust gate, the
+            driver ports and the plugin host are real. The installer, the public
+            repository and the polish are not yet. Every OS you respect shipped a v0
+            once — this is that stage.
+          </p>
+          <p>
+            thalamus is <strong>pre-release</strong>. Interfaces, contracts and storage
+            layouts can still change between versions, and there is no upgrade guarantee
+            across them yet.
+          </p>
+          <p>
+            The plugin host runs a bounded reference adapter — it does not yet load
+            arbitrary third-party code, and it is not an untrusted-code sandbox.
+            Community plugins stay quarantined until that boundary is real.
+          </p>
+          <p>
+            It is self-hosted by design: no account, no tenancy, no hosted service. You
+            run it on your own hardware, or you do not run it.
+          </p>
+        </div>
+      </details>
     </div>
   </div>
 </section>
-
-<style>
-  .honest {
-    width: 100%;
-    max-width: 620px;
-    border-top: 1px solid var(--border-faint);
-    border-bottom: 1px solid var(--border-faint);
-    padding: 4px 0;
-  }
-  .honest summary {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    cursor: pointer;
-    padding: 14px 0;
-    list-style: none;
-  }
-  .honest summary::-webkit-details-marker {
-    display: none;
-  }
-  .honest summary::after {
-    content: " +";
-  }
-  .honest[open] summary::after {
-    content: " −";
-  }
-  .honest summary:hover {
-    color: var(--text-secondary);
-  }
-  .honest-body {
-    padding-bottom: 18px;
-  }
-  .honest-body p {
-    margin: 0 0 12px;
-    font-size: 14.5px;
-    line-height: 1.6;
-    color: var(--text-tertiary);
-    max-width: 62ch;
-  }
-  .honest-body p:last-child {
-    margin-bottom: 0;
-  }
-  .honest-body strong {
-    color: var(--text-secondary);
-    font-weight: 550;
-  }
-</style>

@@ -26,23 +26,29 @@ const soon = (key: keyof typeof AVAILABLE) => (AVAILABLE[key] ? "" : " (not yet 
 
 const body = `# thalamus
 
-> thalamus is an open-source, self-hosted control plane and memory layer for
-> agentic work. It sits above coding agents — Claude Code, Codex, opencode,
-> local models — as a meta-harness: one memory that survives sessions and
-> engine swaps, one trust gate that classifies every action before it runs,
-> and durable jobs that outlive restarts. Engines are replaceable adapters,
-> not foundations. ${site.license} licensed. Free. Pre-release.
+> thalamus is a fully extensible, self-hosted, open-source agentic OS, built on
+> one belief: code is becoming cheap, coding agents are interchangeable, and the
+> way you want to work is the thing worth owning. It does for agents what an OS
+> does for programs — one memory that survives sessions and engine swaps, one
+> trust gate that classifies every action before it runs, durable jobs that
+> outlive restarts — and everything above the ten-noun kernel is a plugin.
+> Engines (Claude Code, Codex, opencode, local models) are replaceable adapters,
+> not foundations. A kernel, not a cortex. ${site.license} licensed. Free.
+> Pre-release.
 
-thalamus answers the question "who owns state when you run more than one coding
-agent". Memory, job history, approvals and the audit log live in the control
-plane rather than inside any single vendor's session. Reversible, low-stakes
-work executes and logs itself; anything irreversible, external or expensive is
-routed back to a human through the trust gate. Web, desktop, mobile and CLI are
-clients of one server contract, not separate products.
+## The bet
 
-The name is literal: the thalamus is the brain's relay and routing station.
-This is not the intelligence — it is what routes, gates and remembers on its
-behalf.
+Software is being commoditised. Generation, review and iteration are compressing,
+so code is becoming cheap, fast and abundant. When code is no longer the scarce
+resource, three things become scarce instead: **coherence** (knowing what is true
+across projects, people and time), **judgment** (deciding what should run, ship,
+wait, or never touch production), and **attention** (the human loop that still
+owns irreversible, external and high-stakes moves).
+
+In that world another chat window is not leverage, and a coding agent that forgets
+last week is not leverage. The durable layer is. thalamus is the OS for the era of
+commodity software: the engines are interchangeable, and the part worth owning is
+the system that remembers, routes, gates — and works the way you want it to.
 
 ## Facts
 
@@ -54,16 +60,22 @@ behalf.
 - Runtime: Node.js / TypeScript. Linux and macOS.
 - Install: \`${installCommand}\`${soon("install")}
 - Hosting model: self-hosted only. No account, no tenancy, no hosted service.
-- Category: AI agent orchestration, coding-agent control plane, agent memory layer, self-hosted developer infrastructure.
+- Category: agentic OS, agent operating system, extensible plugin platform, AI agent orchestration, coding-agent control plane, meta-harness, agent memory layer, self-hosted developer infrastructure.
 
-## Kernel
+## Kernel and extensibility
 
 The kernel is deliberately small — ten nouns, and an eleventh needs a proposal:
 authority, action log, trust gate, jobs, memory port, resource registry, RPC
 registry, plugin lifecycle, clock, settlement receipts.
 
-Everything else is a plugin (surfaces, sources, skills, harnesses) or a driver
-(memory, model, transport, storage). Both are replaceable.
+Everything above it is a plugin — surfaces, sources, skills, harnesses — with a
+manifest, declared capabilities and default-deny permissions. Below it are
+drivers: memory, model, transport, storage. Both are replaceable, and extending
+thalamus means writing a plugin rather than forking it.
+
+Honest limit today: the v0 plugin host runs a bounded reference adapter. It does
+not yet load arbitrary third-party code and is not an untrusted-code sandbox;
+community plugins stay quarantined until that boundary is real.
 
 ## Autonomy model
 
@@ -74,10 +86,11 @@ Everything else is a plugin (surfaces, sources, skills, harnesses) or a driver
 
 ## Pages
 
-- [thalamus — the control plane and memory for agentic work](${site.url}/): what it is, what runs overnight, and how work is routed.
+- [thalamus — the fully extensible, self-hosted agentic OS](${site.url}/): what it is, what runs overnight, and how work is routed.
 - [Something is always on](${site.url}/#alive): how signals route through the relay to whichever engine is free.
 - [Starts empty, grows into anything](${site.url}/#plugins): the plugin model.
 - [Under everything, a kernel](${site.url}/#architecture): the layer stack and the ten kernel nouns.
+- [Questions](${site.url}/#what): what an agentic OS is, whether thalamus is really one, plugins, cost, and what does not work yet.
 - [The honest bit](${site.url}/#honest): what is and is not true of v0 today.
 
 ## Optional

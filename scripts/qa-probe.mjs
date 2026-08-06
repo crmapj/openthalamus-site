@@ -71,10 +71,11 @@ await cdp(ws, ++id, "Runtime.evaluate", {
   expression: `window.scrollTo({top: Math.round((document.documentElement.scrollHeight - innerHeight) * ${FRAC}), behavior: "instant"}); new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))`,
   awaitPromise: true,
 });
-await sleep(250);
+await sleep(Number(process.env.QA_WAIT ?? 250));
 
 const out = await cdp(ws, ++id, "Runtime.evaluate", {
-  expression: `JSON.stringify((()=>{ ${EXPR} })(), null, 2)`,
+  expression: `Promise.resolve((async()=>{ ${EXPR} })()).then(v => JSON.stringify(v, null, 2))`,
+  awaitPromise: true,
   returnByValue: true,
 });
 console.log(out.result.value ?? out.result.description);

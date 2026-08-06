@@ -4,25 +4,26 @@ import { site } from "../config/site";
 /**
  * The direct answer, high on the page, in plain declarative sentences.
  *
- * This section exists because of what the 2026 evidence actually says about
- * being retrieved and cited. In a 252,000-trial controlled study across six
- * models, the factors that moved citation were topical relevance, recency,
- * **concrete specifications**, **explicit price**, and **confident, non-hedged
- * claims** — while formatting and visual structure barely registered. So this
- * is a spec table and a set of assertions, not a paragraph of adjectives.
+ * Two jobs. First, entity resolution: "thalamus" is a brain structure with an
+ * enormous prior, so the page has to say early and unambiguously which thalamus
+ * this is. Second, survive being quoted — answer engines truncate from the
+ * front, so the first clause is a complete correct answer on its own and
+ * everything after the colon is bonus.
  *
- * It is also the answer to the entity problem: "thalamus" is a brain structure
- * with an enormous prior. The page has to say, unambiguously and early, which
- * thalamus this is.
+ * The claim is made in the indicative and the maturity is stated separately, in
+ * its own row and its own section. Blending the two is what hedging *is*;
+ * keeping them apart is how you make a big claim honestly.
  */
 const specs = [
-  { k: "What it is", v: "A control plane and memory layer for agentic work" },
-  { k: "Price", v: "Free — you pay only for your own compute and model tokens" },
-  { k: "Licence", v: `${site.license}`, href: site.licenseUrl },
-  { k: "Hosting", v: "Self-hosted only. No account, no tenancy, no hosted service" },
-  { k: "Runs on", v: "Linux and macOS · Node.js / TypeScript" },
+  { k: "What it is", v: "A fully extensible, self-hosted agentic OS" },
+  { k: "The bet", v: site.bet },
+  { k: "Kernel", v: "Ten nouns; an eleventh needs a proposal" },
+  { k: "Extends", v: "Everything above the kernel is a plugin — surfaces, sources, skills, harnesses, or your own" },
   { k: "Engines", v: "Claude Code, Codex, opencode, local models — swappable adapters" },
-  { k: "Surfaces", v: "Web, desktop, iOS, CLI over one server contract" },
+  { k: "Clients", v: "Web, desktop, iOS, CLI over one server contract" },
+  { k: "Runs on", v: "Linux and macOS · Node.js / TypeScript" },
+  { k: "Hosting", v: "Self-hosted only. No account, no tenancy, no hosted service" },
+  { k: "Price", v: `Free — you pay only for your own compute and model tokens · ${site.license}`, href: site.licenseUrl },
   { k: "Status", v: "Pre-release (v0) — interfaces can still change" },
 ];
 ---
@@ -30,16 +31,21 @@ const specs = [
 <section class="define" id="what" aria-labelledby="what-h">
   <div class="shell define-inner">
     <h2 id="what-h" class="define-h">
-      <strong>thalamus is a self-hosted control plane and memory for agentic work.</strong>
-      It sits above coding agents as a meta-harness: one memory that survives sessions
-      and engine swaps, one trust gate that classifies every action before it runs, and
-      durable jobs that outlive restarts.
+      <strong>
+        thalamus is a fully extensible, self-hosted agentic OS, built on one belief:
+        code is becoming cheap, coding agents are interchangeable, and the way you want
+        to work is the thing worth owning.
+      </strong>
+      It does for agents what an OS does for programs — owns the memory, schedules the
+      jobs, enforces the permissions, keeps the log — and everything above the kernel is
+      a plugin you can install, replace, or write in an afternoon.
     </h2>
 
     <p class="define-note">
-      The name is literal. The thalamus is the brain's relay and routing station —
-      nearly everything on its way to the cortex passes through it. This is not the
-      intelligence. It is what routes, gates and remembers on its behalf.
+      The name is literal. The thalamus is the brain's relay — nearly everything on its
+      way to the cortex passes through it, and it is not the cortex. Same shape here:
+      the intelligence is whichever engines you plug in. thalamus is the part that
+      routes, gates and remembers. A kernel, not a cortex.
     </p>
 
     <dl class="specs">
@@ -47,7 +53,18 @@ const specs = [
         specs.map((s) => (
           <div class="spec">
             <dt>{s.k}</dt>
-            <dd>{s.href ? <a href={s.href} rel="license noopener" target="_blank">{s.v}</a> : s.v}</dd>
+            <dd>
+              {s.href ? (
+                <>
+                  {s.v.replace(` · ${site.license}`, "")} ·{" "}
+                  <a href={s.href} rel="license noopener" target="_blank">
+                    {site.license}
+                  </a>
+                </>
+              ) : (
+                s.v
+              )}
+            </dd>
           </div>
         ))
       }
@@ -67,8 +84,8 @@ const specs = [
     gap: 22px;
   }
 
-  /* A heading in the document outline, but set as a lede — the sentence is the
-     content, and it should read as a statement rather than a section title. */
+  /* A heading in the document outline, set as a lede — the sentence is the
+     content, and it should read as a statement, not a section title. */
   .define-h {
     margin: 0;
     font-size: clamp(19px, 2.2vw, 25px);

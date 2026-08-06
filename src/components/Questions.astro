@@ -1,58 +1,85 @@
 ---
-import { site, installCommand } from "../config/site";
+import { installCommand, site } from "../config/site";
 
 /**
  * Questions, phrased the way people actually type them.
  *
- * Deliberately **not** marked up as FAQPage. Google retired FAQ rich results
- * for most sites on 2026-05-07 and removed the documentation in June, so the
- * schema now buys a validation badge and nothing else. The value here is the
- * plain one: the query string appears verbatim as a heading, immediately above
- * a self-contained answer. Keyword alignment between query and page text is one
- * of the few levers that replicates across models.
+ * Native `<details>` rather than a JS accordion, for the reason this codebase
+ * learned the hard way: content must never depend on a script to become
+ * visible. A closed `<details>` is fully in the DOM, indexed at normal weight,
+ * readable by every answer engine that does not run JavaScript, and findable
+ * by Ctrl+F (Chromium auto-expands on find-in-page). It is also focusable and
+ * keyboard-operable with no ARIA to maintain.
  *
- * Answers are direct and unhedged, including the unflattering one about not
- * being able to install it yet. A vague answer gets paraphrased into something
- * wrong; a blunt one gets quoted correctly.
+ * Deliberately NOT marked up as FAQPage — Google retired FAQ rich results for
+ * most sites in May 2026, so the schema now buys a validation badge and
+ * nothing else. The value here is the plain one: the query appears verbatim as
+ * a heading directly above a self-contained answer.
+ *
+ * Q2 and Q5 carry the load-bearing honesty. "Agentic OS" is a big claim for a
+ * v0, and it only stays credible because the limits are stated in the same
+ * breath as the ambition. Do not soften either.
  */
 const qs = [
   {
-    q: "What is an AI agent control plane?",
-    a: `The layer that governs how agents run rather than doing the work itself: routing tasks to engines, holding credentials, gating actions that need approval, and keeping an audit log. thalamus is that layer for coding agents — it owns memory, job identity, results, cost and resume, while Claude Code, Codex, opencode or a local model do the generating.`,
+    q: "What is an agentic OS?",
+    a: `What an operating system does for programs, done for agents: it owns the things no single agent can own for itself — memory that survives sessions, permissions that gate actions before they run, jobs that outlive restarts, and a plugin surface for everything else. The engines stay swappable; the OS is the part that persists. thalamus is that layer, self-hosted on your own hardware.`,
+  },
+  {
+    q: "Is thalamus actually an operating system?",
+    a: `It won't boot your laptop, and it doesn't want to. It is an OS in the structural sense: a ten-noun kernel owns jobs, memory, authority and the action log; drivers make engines and memory backends swappable; everything else is a plugin with declared, default-deny capabilities. The test that matters — extending it means writing a plugin, not a fork. v0 is early; the shape is already this.`,
   },
   {
     q: "What tools orchestrate multiple coding agents?",
-    a: `Several exist, and most are either a task board over one agent or a hosted service that owns your state. thalamus takes the other position: the control plane is self-hosted and the engines are swappable adapters behind a port, so switching model or harness leaves your memory, job history and trust rules exactly where they were.`,
+    a: `Most options are a task board over one vendor's agent, or a hosted service that owns your state. thalamus takes the OS position instead: Claude Code, Codex, opencode and local models are adapters behind a driver port, jobs are durable and survive restarts — the meta-harness — and switching engines leaves your memory, history and trust rules exactly where they were. On your box.`,
   },
   {
     q: "How do I share memory between Claude Code and Codex?",
-    a: `Put the memory outside both of them. Each harness keeps its own session state and forgets across restarts, so anything that must survive belongs in a store neither vendor owns. thalamus holds one memory behind a driver port and hands the relevant context to whichever engine picks up the job.`,
+    a: `Put the memory outside both of them. Each harness keeps its own session state and forgets across restarts, so anything that must survive belongs in a store neither vendor owns. In thalamus, memory is an OS service behind a driver port: every engine reads and writes the same brain, and swapping engines never resets it.`,
+  },
+  {
+    q: "Can I build my own thalamus plugins?",
+    a: `That's the whole design. Every capability above the kernel is a plugin — surfaces, sources, skills, harnesses — with a manifest, declared capabilities and default-deny permissions. Official ones install with one command; yours can start as a folder a coding agent wrote this afternoon. The honest limit today: the v0 host runs a bounded reference adapter, and third-party code stays quarantined until the sandbox boundary is real.`,
   },
   {
     q: "Is thalamus self-hosted, and is there a cloud version?",
-    a: `Self-hosted only. There is no account, no tenancy and no hosted service to sign up for — you run it on your own hardware or you do not run it. That is a design decision, not a missing feature.`,
+    a: `Self-hosted only. No account, no tenancy, no hosted service to sign up for — you run it on your own hardware or you don't run it. That is the position, not a roadmap gap: an OS you don't own is someone else's computer with your memory in it.`,
   },
   {
     q: "How much does thalamus cost?",
-    a: `Nothing. It is free and ${site.license} licensed. Because it is self-hosted you pay for your own compute and your own model tokens, and nothing else. Spend caps are part of the trust gate, so an overnight run has a ceiling you set.`,
+    a: `Nothing. Free, ${site.license} licensed, self-hosted — the only bills are your own compute and your own model tokens. That follows from the bet: code generation is a commodity, so the OS meters it like one. Spend caps live in the trust gate, and an overnight run has a ceiling you set.`,
   },
   {
     q: "Can I install and use thalamus today?",
-    a: `Not yet. v0 is pre-release: the installer (${installCommand}) and the repository are not public, and interfaces, contracts and storage layouts can still change between versions. The waitlist below is the honest answer — one email when there is a build worth running on your own box.`,
+    a: `Not yet. v0 is pre-release: the repository is private, the installer (${installCommand}) does not exist yet, and interfaces, contracts and storage layouts can still change. The waitlist below is the honest answer — one email when there is a build worth running on your own box.`,
   },
 ];
 ---
 
 <section class="questions" aria-labelledby="q-h">
   <div class="shell q-inner">
-    <h2 id="q-h">Questions</h2>
-    <div class="q-grid">
+    <header class="q-head">
+      <p class="eyebrow">Questions</p>
+      <h2 id="q-h">Asked directly, answered directly.</h2>
+      <p class="q-count" aria-hidden="true">{String(qs.length).padStart(2, "0")} questions</p>
+    </header>
+
+    <div class="q-list">
       {
-        qs.map((item) => (
-          <article class="q-item">
-            <h3>{item.q}</h3>
-            <p>{item.a}</p>
-          </article>
+        qs.map((item, i) => (
+          <details class="q-item" open={i === 0}>
+            <summary>
+              <span class="q-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+              <h3 class="q-q">{item.q}</h3>
+              <svg class="q-marker" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                <line class="q-marker-v" x1="6" y1="0.5" x2="6" y2="11.5" />
+                <line x1="0.5" y1="6" x2="11.5" y2="6" />
+              </svg>
+            </summary>
+            <div class="q-a">
+              <p>{item.a}</p>
+            </div>
+          </details>
         ))
       }
     </div>
@@ -65,26 +92,118 @@ const qs = [
     border-top: 1px solid var(--border-faint);
   }
   .q-inner {
-    padding: 90px 0 96px;
+    padding: 96px 0 110px;
+    display: grid;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: 24px 72px;
+    align-items: start;
+  }
+
+  /* Sticky, so the section keeps its title while a long answer scrolls. */
+  .q-head {
+    position: sticky;
+    top: 48px;
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    gap: 12px;
   }
-  .q-grid {
+  .q-head h2 {
+    font-size: clamp(26px, 3vw, 34px);
+  }
+  .q-count {
+    margin: 4px 0 0;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-ghost);
+  }
+
+  .q-list {
+    border-top: 1px solid var(--border-subtle);
+  }
+  .q-item {
+    border-bottom: 1px solid var(--border-faint);
+  }
+
+  .q-item summary {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 34px 48px;
+    grid-template-columns: 46px minmax(0, 1fr) 28px;
+    align-items: baseline;
+    padding: 21px 0;
+    cursor: pointer;
+    list-style: none;
   }
-  .q-item h3 {
-    margin: 0 0 10px;
-    font-size: 16px;
+  .q-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .q-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-ghost);
+  }
+  .q-q {
+    margin: 0;
+    font-size: 15.5px;
     font-weight: 550;
     letter-spacing: -0.014em;
-    line-height: 1.35;
-    color: var(--text-primary);
+    line-height: 1.4;
+    color: var(--text-secondary);
     text-wrap: pretty;
+    transition: color 140ms ease;
   }
-  .q-item p {
+  .q-item summary:hover .q-q,
+  .q-item[open] .q-q {
+    color: var(--text-primary);
+  }
+
+  /* State is shape: the vertical stroke collapses, so plus becomes minus. */
+  .q-marker {
+    align-self: center;
+    justify-self: end;
+    stroke: var(--text-ghost);
+    stroke-width: 1.5;
+    transition: stroke 140ms ease;
+    overflow: visible;
+  }
+  .q-item summary:hover .q-marker {
+    stroke: var(--text-tertiary);
+  }
+  .q-item[open] .q-marker {
+    stroke: var(--text-primary);
+  }
+  .q-marker-v {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 220ms ease;
+  }
+  .q-item[open] .q-marker-v {
+    transform: scaleY(0);
+  }
+
+  /* Browsers without ::details-content simply snap open — which is the same
+     state reduced-motion users get, so it is a sanctioned resting state rather
+     than a broken one. No JS height-measuring fallback. */
+  .q-item::details-content {
+    height: 0;
+    overflow: clip;
+    opacity: 0;
+    transition:
+      height 260ms ease,
+      opacity 200ms ease 40ms,
+      content-visibility 260ms allow-discrete;
+  }
+  .q-item[open]::details-content {
+    height: auto;
+    opacity: 1;
+  }
+
+  .q-a {
+    padding: 0 0 26px 46px;
+  }
+  .q-a p {
     margin: 0;
     font-size: 14.5px;
     line-height: 1.62;
@@ -93,14 +212,25 @@ const qs = [
     text-wrap: pretty;
   }
 
-  @media (max-width: 860px) {
+  @media (max-width: 1080px) {
     .q-inner {
-      padding: 62px 0 66px;
-      gap: 30px;
-    }
-    .q-grid {
       grid-template-columns: 1fr;
-      gap: 28px;
+      gap: 36px;
+    }
+    .q-head {
+      position: static;
+    }
+  }
+  @media (max-width: 560px) {
+    .q-inner {
+      padding: 62px 0 70px;
+    }
+    .q-item summary {
+      grid-template-columns: 34px minmax(0, 1fr) 24px;
+      padding: 18px 0;
+    }
+    .q-a {
+      padding-left: 34px;
     }
   }
 </style>

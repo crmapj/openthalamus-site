@@ -58,7 +58,7 @@ const html = `<!doctype html>
   <div class="inner">
     <div class="brandline">${MARK}<span class="wordmark">thalamus</span><span class="dot"></span></div>
     <h1><span class="dim">There will be many like it.</span> This one is yours.</h1>
-    <p class="sub">The self-hosted control plane and memory for agentic work.</p>
+    <p class="sub">The fully extensible, self-hosted agentic OS.</p>
   </div>
   <div class="foot">
     <span>Open source</span><span class="sep">·</span>

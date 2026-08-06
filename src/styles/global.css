@@ -75,6 +75,11 @@
   /* The dot grid behind every pinned stage. */
   --stage-grid: radial-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px)
     0 0 / 26px 26px;
+
+  /* Lets the FAQ accordion transition to `height: auto`. Browsers without it
+     snap open instead — the same state reduced-motion users get, so the
+     fallback is a sanctioned resting state rather than a broken one. */
+  interpolate-size: allow-keywords;
 }
 
 *,
@@ -949,82 +954,95 @@ h2 {
  * Closing CTA + waitlist + footer
  * ====================================================================== */
 
+/* ====================================================================== *
+ * Closing section — the final stage
+ *
+ * The pinned beats each resolve in a centred moment on the dot grid. This is
+ * the one the visitor acts in, so it is staged the same way rather than being
+ * a fourth left-aligned card. Hierarchy is decided, not averaged: the form is
+ * the ending; install command, assurances and the honest bit are metadata,
+ * demoted below a rule.
+ * ====================================================================== */
+
 .close {
-  background: var(--surface-terminal);
+  background: var(--surface-void) var(--stage-grid);
   border-top: 1px solid var(--border-faint);
 }
 .close-inner {
-  padding: 110px 0 96px;
+  padding: 150px 0 130px;
   display: flex;
   flex-direction: column;
-  gap: 26px;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
 }
 
-.assurances {
+.close-head {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 16px;
-  flex-wrap: wrap;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--text-faint);
 }
-.assurances .sep { color: #3a3a3a; }
-.assurances a { color: #b5b5b5; border-bottom-color: rgba(255, 255, 255, 0.28); }
-
-/* ── Waitlist ── */
-
-.waitlist {
-  width: 100%;
-  max-width: 620px;
-  background: var(--surface-raised);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 28px;
+/* Bookends the hero, so it outranks the beat headings. */
+.close-h {
+  font-size: clamp(34px, 5.2vw, 58px);
+  letter-spacing: -0.04em;
+  font-weight: 650;
+  line-height: 1.05;
 }
-.waitlist h2 { font-size: clamp(24px, 3vw, 30px); margin-bottom: 10px; }
-.waitlist-note {
+.close-sub {
   margin: 0;
-  color: var(--text-tertiary);
-  font-size: 15px;
-  line-height: 1.55;
-  max-width: 56ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-lede);
+  max-width: 46ch;
+  text-wrap: pretty;
+}
+
+/* ── The ask: naked, focal, no card. Isolation and scale do the work. ── */
+
+.ask-zone {
+  margin-top: 44px;
+  width: 100%;
+  max-width: 520px;
+  display: grid;
+}
+/* Form and result occupy the same cell, so the swap never shifts the page. */
+.ask-zone > * {
+  grid-area: 1 / 1;
 }
 
 .field-row {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 18px;
 }
 
 input[type="email"] {
-  flex: 1 1 260px;
+  flex: 1 1 auto;
   min-width: 0;
+  height: 52px;
   background: var(--surface-inset);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 12px 14px;
+  padding: 0 16px;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: 15px;
+  /* 16px also stops iOS zooming the viewport on focus. */
+  font-size: 16px;
 }
 input[type="email"]::placeholder { color: var(--text-dim); }
 input[type="email"]:focus {
-  border-color: var(--border-strong);
+  border-color: var(--border-active);
   outline: none;
 }
 
 .btn {
   flex: none;
+  height: 52px;
+  padding: 0 26px;
   background: var(--text-primary);
   color: var(--text-on-invert);
   border: 1px solid var(--text-primary);
   border-radius: var(--radius-md);
-  padding: 12px 22px;
   font-family: var(--font-sans);
   font-size: 15px;
   font-weight: 550;
@@ -1044,49 +1062,161 @@ input[type="email"]:focus {
 }
 
 .form-note {
-  margin: 14px 0 0;
-  font-size: 13px;
-  color: var(--text-dim);
+  margin: 16px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-ghost);
 }
+.form-note a {
+  color: var(--text-dim);
+  border-bottom-color: var(--border-subtle);
+}
+.form-note a:hover { color: var(--text-secondary); }
+
+/* Turnstile only renders in interaction-only mode when a challenge is really
+   needed, so this just keeps it from crowding the note when it does appear. */
+.cf-turnstile:not(:empty) { margin-top: 16px; }
+
+/* Error is inline and never destroys the form. Red dot = failed, which is the
+   system's own status grammar, and this is the only place hue is permitted. */
+.form-err {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 9px;
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  color: var(--destructive);
+}
+.form-err[hidden] { display: none; }
+.form-err::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--destructive);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* ── Success: a receipt, not an alert ── */
 
 .result {
   display: none;
-  align-items: flex-start;
-  gap: 13px;
-  margin-top: 18px;
-  padding: 17px 18px;
-  border-radius: var(--radius-md);
-  background: var(--fill-subtle);
-  border: 1px solid var(--border-strong);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 8px 0 24px;
 }
 .result.show { display: flex; }
-.result[data-outcome="already"] { border-style: dashed; }
-.result[data-outcome="error"] { border-color: var(--destructive); }
+html.motion .result.show { animation: riseIn 420ms ease-out both; }
 
-.result-icon { flex: none; margin-top: 1px; }
-.result-icon circle { stroke: var(--text-primary); }
-.result[data-outcome="error"] .result-icon circle { stroke: var(--destructive); }
-.result-title {
-  margin: 0 0 3px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.result[data-outcome="error"] .result-title { color: var(--destructive); }
-.result-body {
-  margin: 0;
-  font-size: 13.5px;
-  color: var(--text-tertiary);
-  line-height: 1.5;
-}
+.result-ring { stroke: var(--border-active); }
+/* State is shape: dashed ring = was already here. */
+.result[data-outcome="already"] .result-ring { stroke-dasharray: 3 5; }
 
 .check-path {
-  stroke-dasharray: 22;
-  stroke-dashoffset: 22;
-  transition: stroke-dashoffset 0.45s ease 0.15s;
+  stroke: var(--text-primary);
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  transition: stroke-dashoffset 0.5s ease 0.2s;
 }
 .result.show .check-path { stroke-dashoffset: 0; }
+
+.result-title {
+  margin: 10px 0 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.result-body {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text-tertiary);
+  max-width: 44ch;
+}
+.result-receipt {
+  margin: 14px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
 .form-hidden { display: none; }
+
+/* ── The metadata band, below the rule ── */
+
+.close-rule {
+  width: 1px;
+  height: 48px;
+  margin-top: 64px;
+  background: var(--border-strong);
+}
+
+.close-meta {
+  margin-top: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.assurances {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.assurances .sep { color: #3a3a3a; }
+
+.honest {
+  border: none;
+  padding: 0;
+  max-width: 62ch;
+  width: 100%;
+}
+.honest summary {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 6px 0;
+  list-style: none;
+}
+.honest summary::-webkit-details-marker { display: none; }
+.honest summary::after { content: " +"; }
+.honest[open] summary::after { content: " \2212"; }
+.honest summary:hover { color: var(--text-secondary); }
+.honest-body {
+  text-align: left;
+  padding-top: 10px;
+}
+.honest-body p {
+  margin: 0 0 12px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+}
+.honest-body p:last-child { margin-bottom: 0; }
+.honest-body strong {
+  color: var(--text-secondary);
+  font-weight: 550;
+}
 
 /* ── Footer ── */
 

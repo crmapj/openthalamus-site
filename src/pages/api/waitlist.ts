@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { createHash } from "node:crypto";
-import { getDb, normaliseEmail, rateLimited } from "../../lib/db";
+import { classifyChannel, getDb, normaliseEmail, rateLimited } from "../../lib/db";
 import { sendMail, waitlistConfirmation } from "../../lib/email";
 
 // The only server-rendered route on the site. Everything else is static HTML.
@@ -78,17 +78,36 @@ const EMAIL_RE = /^[^\s@]+@[^\s@.]+\.[^\s@]{2,}$/;
  * A missing Origin is allowed: non-browser clients (curl, no-JS form posts from
  * some older browsers) omit it, and every other defence still applies.
  */
+function ownHosts(): string[] {
+  return (process.env.ALLOWED_ORIGIN_HOSTS ?? "openthalamus.dev,www.openthalamus.dev,localhost,127.0.0.1")
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 function originAllowed(request: Request): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return true;
 
-  const allowed = (process.env.ALLOWED_ORIGIN_HOSTS ?? "openthalamus.dev,www.openthalamus.dev,localhost,127.0.0.1")
-    .split(",")
-    .map((h) => h.trim().toLowerCase())
-    .filter(Boolean);
-
   try {
-    return allowed.includes(new URL(origin).hostname.toLowerCase());
+    return ownHosts().includes(new URL(origin).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True when a referrer is one of our own hostnames.
+ *
+ * Compared against the configured host allowlist rather than against
+ * `request.url`. Behind Cloudflare and Traefik the server sees an internal
+ * origin like `http://10.0.0.4:4321` while the browser sends
+ * `https://openthalamus.dev/` — so a `request.url` comparison never matches,
+ * and every direct visitor would be filed as a referral from our own site.
+ */
+function isOwnReferrer(referrer: string): boolean {
+  try {
+    return ownHosts().includes(new URL(referrer).hostname.toLowerCase());
   } catch {
     return false;
   }
@@ -131,12 +150,26 @@ export const POST: APIRoute = async ({ request }) => {
     return reply(request, 403, "Verification failed. Please try again.");
   }
 
+  // 4. Attribution. The client captures the referrer on arrival and carries it
+  //    to submit; the Referer header is only a fallback, because by the time
+  //    this POST fires the browser reports our own origin.
+  const trim = (v: FormDataEntryValue | null) => String(v ?? "").slice(0, 300);
+  const claimed = trim(form.get("ref")) || (request.headers.get("referer") ?? "").slice(0, 300);
+  // Our own pages are navigation, not acquisition. Filtering here as well as in
+  // the client keeps the header fallback from filing every direct visitor as a
+  // referral from openthalamus.dev.
+  const referrer = isOwnReferrer(claimed) ? "" : claimed;
+  const utm = trim(form.get("utm"));
+  const landing = trim(form.get("landing"));
+  const channel = classifyChannel(referrer, utm);
+
   try {
     const db = getDb();
     const info = db
       .prepare(
-        `INSERT INTO waitlist (email, email_norm, ip_hash, user_agent, source)
-         VALUES (?, ?, ?, ?, ?)
+        `INSERT INTO waitlist
+           (email, email_norm, ip_hash, user_agent, source, referrer, utm, landing, channel)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(email_norm) DO NOTHING`,
       )
       .run(
@@ -145,6 +178,10 @@ export const POST: APIRoute = async ({ request }) => {
         ipHash,
         (request.headers.get("user-agent") ?? "").slice(0, 300),
         "landing",
+        referrer,
+        utm,
+        landing,
+        channel,
       );
 
     // We DO distinguish "added" from "already on the list" (Chris, 2026-08-02).

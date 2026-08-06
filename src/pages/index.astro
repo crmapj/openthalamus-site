@@ -11,7 +11,7 @@ import Close from "../components/Close.astro";
 import Footer from "../components/Footer.astro";
 import { site } from "../config/site";
 
-const title = "thalamus — self-hosted control plane and memory for agentic work";
+const title = "thalamus — the fully extensible, self-hosted agentic OS";
 ---
 
 <Base title={title} description={site.description}>
@@ -137,37 +137,101 @@ const title = "thalamus — self-hosted control plane and memory for agentic wor
     }
   }
 
+  /* ── Attribution ─────────────────────────────────────────────────────────
+     Captured on arrival and stashed, because the visitor scrolls ~11,000px
+     before reaching the form and an in-page anchor would otherwise be the last
+     thing `document.referrer` reports. Answer engines are the channel that
+     matters for this product and most of them send no UTM at all, so the
+     referrer host is the real signal. */
+  const ATTR_KEY = "thal.attr";
+  type Attr = { ref: string; utm: string; landing: string };
+
+  function captureAttribution(): Attr {
+    try {
+      const stored = sessionStorage.getItem(ATTR_KEY);
+      if (stored) return JSON.parse(stored) as Attr;
+    } catch {
+      /* private mode — fall through and just use this pageview */
+    }
+    const params = new URLSearchParams(location.search);
+    const utm = ["utm_source", "utm_medium", "utm_campaign", "ref", "source"]
+      .map((k) => (params.get(k) ? `${k}=${params.get(k)}` : ""))
+      .filter(Boolean)
+      .join("&")
+      .slice(0, 300);
+    const attr: Attr = {
+      // Same-origin referrers are navigation noise, not acquisition.
+      ref: document.referrer && !document.referrer.startsWith(location.origin)
+        ? document.referrer.slice(0, 300)
+        : "",
+      utm,
+      landing: (location.pathname + location.search).slice(0, 300),
+    };
+    try {
+      sessionStorage.setItem(ATTR_KEY, JSON.stringify(attr));
+    } catch {
+      /* ignore */
+    }
+    return attr;
+  }
+
+  const attr = captureAttribution();
+  const setField = (id: string, v: string) => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.value = v;
+  };
+  setField("f-ref", attr.ref);
+  setField("f-utm", attr.utm);
+  setField("f-landing", attr.landing);
+
   /* ── Waitlist form ───────────────────────────────────────────────────── */
   const form = document.getElementById("waitlist-form") as HTMLFormElement | null;
   const btn = document.getElementById("submit-btn") as HTMLButtonElement | null;
   const result = document.getElementById("result");
   const rTitle = document.getElementById("result-title");
   const rBody = document.getElementById("result-body");
+  const rReceipt = document.getElementById("result-receipt");
+  const formErr = document.getElementById("form-err");
   const emailInput = document.getElementById("email") as HTMLInputElement | null;
 
-  const COPY: Record<string, { title: string; body: string }> = {
+  const COPY: Record<string, { title: string; body: string; receipt: string }> = {
     added: {
       title: "You're on the list.",
-      body: "We'll email you when there's a build worth self-hosting. Nothing else.",
+      body: "One email when there's a build worth self-hosting. Nothing else.",
+      receipt: "added · one email at v0",
     },
     already: {
       title: "You're already on the list.",
       body: "This address was added earlier — no need to submit again. You're all set.",
-    },
-    error: {
-      title: "That didn't go through.",
-      body: "Check the address and try again.",
+      receipt: "already on the list",
     },
   };
 
-  function show(outcome: string, bodyOverride?: string) {
+  /** Errors stay inline and leave the form alive to retry. */
+  function showError(message: string) {
+    if (!formErr) return;
+    formErr.textContent = message;
+    formErr.hidden = false;
+  }
+  function clearError() {
+    if (formErr) formErr.hidden = true;
+  }
+  emailInput?.addEventListener("input", clearError);
+
+  /** Success replaces the form in place — same grid cell, so nothing jumps. */
+  function showResult(outcome: "added" | "already", email?: string) {
     if (!result || !rTitle || !rBody) return;
-    const copy = COPY[outcome] ?? COPY.error;
+    const copy = COPY[outcome];
+    clearError();
     result.setAttribute("data-outcome", outcome);
     rTitle.textContent = copy.title;
-    rBody.textContent = bodyOverride || copy.body;
+    rBody.textContent = copy.body;
+    if (rReceipt) {
+      const addr = (email ?? emailInput?.value ?? "").trim();
+      rReceipt.textContent = addr ? `${addr} · ${copy.receipt}` : copy.receipt;
+    }
     result.classList.add("show");
-    if (outcome === "added" || outcome === "already") form?.classList.add("form-hidden");
+    form?.classList.add("form-hidden");
     result.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
   }
 
@@ -175,7 +239,8 @@ const title = "thalamus — self-hosted control plane and memory for agentic wor
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!emailInput?.value.trim()) {
-        show("error", "Enter an email address first.");
+        showError("Enter an email address first.");
+        emailInput?.focus();
         return;
       }
       btn.disabled = true;
@@ -189,11 +254,15 @@ const title = "thalamus — self-hosted control plane and memory for agentic wor
           headers: { Accept: "application/json" },
           body: new FormData(form),
         });
-        const data = await res.json().catch(() => ({}) as Record<string, string>);
-        show(data.outcome || (res.ok ? "added" : "error"), res.ok ? undefined : data.message);
-        if (!res.ok && (window as any).turnstile) (window as any).turnstile.reset();
+        const data = (await res.json().catch(() => ({}))) as Record<string, string>;
+        if (res.ok && (data.outcome === "added" || data.outcome === "already")) {
+          showResult(data.outcome);
+        } else {
+          showError(data.message || "That didn't go through. Check the address and try again.");
+          if ((window as any).turnstile) (window as any).turnstile.reset();
+        }
       } catch {
-        show("error", "Network problem — try again in a moment.");
+        showError("Network problem — try again in a moment.");
       } finally {
         btn.disabled = false;
         btn.textContent = original;
@@ -203,7 +272,7 @@ const title = "thalamus — self-hosted control plane and memory for agentic wor
 
   // No-JS path returns with ?joined / ?already / ?error — honour it on load.
   const q = new URLSearchParams(location.search);
-  if (q.has("joined")) show("added");
-  else if (q.has("already")) show("already");
-  else if (q.has("error")) show("error");
+  if (q.has("joined")) showResult("added");
+  else if (q.has("already")) showResult("already");
+  else if (q.has("error")) showError("That didn't go through. Check the address and try again.");
 </script>

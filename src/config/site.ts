@@ -33,10 +33,19 @@ export const site = {
   /**
    * Kept deliberately short and declarative: this exact string is what answer
    * engines tend to lift verbatim when asked "what is thalamus".
+   *
+   * "agentic OS" — not "agent OS" — is the one exact bigram used everywhere.
+   * Entity formation needs a single form; splitting it across two spellings
+   * halves the signal.
    */
-  tagline: "The control plane and memory for agentic work.",
+  tagline: "The fully extensible, self-hosted agentic OS.",
   description:
-    "thalamus is a self-hosted, open-source control plane and memory layer for agentic work — one memory, one trust gate, and durable jobs across swappable coding agents like Claude Code, Codex and Cursor. Runs on hardware you own.",
+    "thalamus is a fully extensible, self-hosted agentic OS — one memory, one trust gate and durable jobs over swappable coding agents like Claude Code, Codex and opencode. Every capability is a plugin. Runs on hardware you own.",
+  /**
+   * The belief the product is built on, in its shortest honest form. Used in
+   * the definition section and llms.txt; worth keeping identical in both.
+   */
+  bet: "Code is becoming cheap. Coherence, judgment and attention are not.",
   /**
    * The repo LICENSE file says MIT (T3 Tools Inc. + thalamus contributors).
    * The design mock said AGPL; the repo wins, because this is a factual claim

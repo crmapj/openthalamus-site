@@ -52,17 +52,23 @@ export function waitlistConfirmationMail(): RenderedMail {
 
   const text = `You're on the list.
 
-thalamus is the control plane and memory for agentic work — a self-hosted
-meta-layer over coding agents.
+thalamus is a fully extensible, self-hosted agentic OS — one memory, one
+trust gate, and durable jobs over whichever coding agents you choose.
+
+The bet: code is becoming cheap, coding agents are interchangeable, and the
+way you want to work is the thing worth owning.
 
   ONE MEMORY      Conversations, notes and decisions fold into a single store.
-                  No session starts cold.
+                  No session starts cold, and swapping engines never resets it.
 
   ONE TRUST GATE  Confident, reversible work proceeds and logs. Anything
-                  irreversible waits for you.
+                  irreversible, external or expensive waits for you.
 
-  META-HARNESS    It owns jobs, results, cost and resume. Engines are
-                  replaceable fuel.
+  EXTENSIBLE      Everything above the ten-noun kernel is a plugin. Install
+                  one, replace one, or write one in an afternoon.
+
+  ENGINES         Claude Code, Codex, opencode, local models — swappable
+                  adapters. Jobs, results, cost and resume belong to the OS.
 
 WHAT HAPPENS NEXT
 You'll get one email when there's a build worth self-hosting. Not a newsletter,
@@ -127,16 +133,18 @@ thalamus · MIT licensed · pre-release`;
         <h1 style="margin:0 0 16px 0;font-family:${SANS};font-size:27px;line-height:1.18;letter-spacing:-0.025em;font-weight:600;color:${BRIGHT};">You're on the list.</h1>
 
         <p style="margin:0 0 28px 0;font-family:${SANS};font-size:15.5px;line-height:1.6;color:${TEXT};">
-          thalamus is the control plane and memory for agentic work &mdash; a self-hosted
-          meta-layer over coding agents that turns cheap, abundant code into coherent,
-          governed progress.
+          thalamus is a fully extensible, self-hosted agentic OS &mdash; one memory, one
+          trust gate, and durable jobs over whichever coding agents you choose. The bet:
+          code is becoming cheap, coding agents are interchangeable, and the way you want
+          to work is the thing worth owning.
         </p>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${LINE};padding-top:4px;">
           <tr><td style="height:24px;font-size:0;line-height:0;">&nbsp;</td></tr>
-          ${row("One memory", "Conversations, notes and decisions fold into a single store. No session starts cold.")}
-          ${row("One trust gate", "Confident, reversible work proceeds and logs. Anything irreversible waits for you.")}
-          ${row("A meta-harness", "It owns jobs, results, cost and resume. Engines are replaceable fuel.")}
+          ${row("One memory", "Conversations, notes and decisions fold into a single store. No session starts cold, and swapping engines never resets it.")}
+          ${row("One trust gate", "Confident, reversible work proceeds and logs. Anything irreversible, external or expensive waits for you.")}
+          ${row("Extensible", "Everything above the ten-noun kernel is a plugin. Install one, replace one, or write one in an afternoon.")}
+          ${row("Engines", "Claude Code, Codex, opencode, local models &mdash; swappable adapters. Jobs, results, cost and resume belong to the OS.")}
         </table>
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${LINE};">
