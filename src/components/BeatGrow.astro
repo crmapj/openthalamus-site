@@ -10,18 +10,18 @@ import Mark from "./Mark.astro";
  * the chip and feed the engine's reach maths.
  */
 const chips = [
-  { label: "Gmail", wave: 0, k: 0, x: 50, y: 25 },
-  { label: "memory-gbrain", wave: 0, k: 1, x: 70.8, y: 62.5 },
-  { label: "Calendar", wave: 0, k: 2, x: 29.2, y: 62.5 },
-  { label: "harness-codex", wave: 1, k: 0, x: 75.5, y: 25.25 },
-  { label: "harness-claude", wave: 1, k: 1, x: 50, y: 85 },
-  { label: "Linear", wave: 1, k: 2, x: 24.5, y: 25.25 },
-  { label: "Attio", wave: 2, k: 0, x: 86, y: 50 },
-  { label: "GitHub PRs", wave: 2, k: 1, x: 14, y: 50 },
-  { label: "Morning brief", wave: 2, k: 2, x: 67, y: 9.35 },
-  { label: "habit-coach", wave: 3, k: 0, x: 33, y: 9.35 },
-  { label: "podcaster", wave: 3, k: 1, x: 11, y: 66.8 },
-  { label: "personal-finances", wave: 3, k: 2, x: 89, y: 66.8 },
+  { label: "Gmail", wave: 0, k: 0, x: 50, y: 25, mx: 30, my: 4 },
+  { label: "memory-gbrain", wave: 0, k: 1, x: 70.8, y: 62.5, mx: 50, my: 16 },
+  { label: "Calendar", wave: 0, k: 2, x: 29.2, y: 62.5, mx: 25, my: 29 },
+  { label: "harness-codex", wave: 1, k: 0, x: 75.5, y: 25.25, mx: 50, my: 41 },
+  { label: "harness-claude", wave: 1, k: 1, x: 50, y: 85, mx: 50, my: 59 },
+  { label: "Linear", wave: 1, k: 2, x: 24.5, y: 25.25, mx: 83, my: 50 },
+  { label: "Attio", wave: 2, k: 0, x: 86, y: 50, mx: 16, my: 50 },
+  { label: "GitHub PRs", wave: 2, k: 1, x: 14, y: 50, mx: 28, my: 72 },
+  { label: "Morning brief", wave: 2, k: 2, x: 67, y: 9.35, mx: 74, my: 29 },
+  { label: "habit-coach", wave: 3, k: 0, x: 33, y: 9.35, mx: 72, my: 72 },
+  { label: "podcaster", wave: 3, k: 1, x: 11, y: 66.8, mx: 70, my: 4 },
+  { label: "personal-finances", wave: 3, k: 2, x: 89, y: 66.8, mx: 50, my: 85 },
 ];
 
 const labels = [
@@ -68,7 +68,7 @@ const labels = [
                   class="chip js-chip"
                   data-wave={c.wave}
                   data-k={c.k}
-                  style={`--x:${c.x};--y:${c.y}`}
+                  style={`--x:${c.x};--y:${c.y};--mx:${c.mx};--my:${c.my}`}
                 >
                   <span class="chip-body">{c.label}</span>
                 </li>
@@ -152,77 +152,64 @@ const labels = [
   }
 
   @media (max-width: 860px) {
-    /* The radial constellation collapses into a wrapped list — the plugin names
-       are the content, their coordinates are not. */
-    .grow-field {
-      height: auto;
-      min-height: 0;
-    }
-    /* The radial connector geometry is desktop-only — a wrapped list is the
-       correct vertical form. The mark is not: the fold into it is the payoff of
-       the whole page, and mobile used to end this beat on a list. */
-    #grow-svg,
-    .grow-core {
-      display: none;
-    }
-    .grow-mark {
-      display: block;
-      z-index: 5;
-    }
-    .chip-list {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      padding: 8px 0 0;
-    }
+    /*
+     * Portrait keeps the radial growth. The wrapped-list version lost the one
+     * idea this beat has: capability spreading outward from a core. The chips
+     * are simply placed on a taller, narrower field.
+     */
     .chip {
-      position: static;
-      transform: none;
+      left: calc(var(--mx) * 1%);
+      top: calc(var(--my) * 1%);
     }
-    /* Guards a desktop -> mobile resize from leaving a stale inline opacity,
-       without overriding the engine while it is actually driving them. */
-    :global(html:not(.motion)) .chip {
-      opacity: 1;
-    }
-    .grow-final {
-      position: static;
-      transform: none;
-      margin: 34px auto 0;
-    }
-    /* Only while the engine is driving: the mark is absolutely centred in the
-       field, so the closing line has to be pinned beneath it or it strands
-       itself under a collapsed chip list. The resting state stays in flow. */
-    :global(html.motion) .grow-final {
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: calc(50% + 76px);
-      margin: 0;
-    }
-    :global(html:not(.motion)) .grow-final {
-      opacity: 1;
-    }
-    .grow-head {
-      position: relative;
-      height: 62px;
-    }
-    /* Half this beat's copywriting; it was being dropped on phones entirely. */
-    .grow-label {
-      display: flex;
-      inset: 26px 0 0;
-      font-size: 18px;
-      justify-content: center;
-      text-align: center;
-    }
-    .grow-count {
-      position: static;
-      transform: none;
-      text-align: center;
-    }
-    .grow-term {
+    .chip-body {
+      padding: 6px 10px;
+      border-radius: 8px;
       font-size: 11px;
-      padding: 12px 12px;
+    }
+
+    .grow-wrap { height: 100%; gap: 6px; }
+    .grow-field { flex: 1; height: auto; min-height: 0; }
+
+    /* The topmost chips sit at 4% of the field, so the wave label needs a
+       little air beneath it or the two collide. */
+    .grow-head { height: 62px; margin-bottom: 10px; }
+    .grow-count { top: 0; font-size: 9.5px; letter-spacing: 0.17em; white-space: nowrap; }
+    .grow-label {
+      inset: 24px 0 0;
+      font-size: 21px;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .grow-core .core-ring { width: 34px; height: 34px; }
+    .grow-core .core-dot { width: 8px; height: 8px; }
+    .grow-mark { display: block; }
+    .grow-final {
+      top: calc(50% + 62px);
+      width: 100%;
+      max-width: none;
+      gap: 11px;
+    }
+    .grow-final h2 { font-size: 30px; letter-spacing: -0.032em; }
+    .grow-final p { font-size: 14px; }
+
+    .grow-term {
+      margin-top: 10px;
+      padding: 11px 13px;
+      gap: 7px;
+      font-size: 10px;
+      line-height: 1.45;
+    }
+    .grow-cmd { align-items: baseline; gap: 7px; }
+    .grow-cmd code { word-break: break-word; }
+
+    /* No-JS and reduced motion need a box for the radial field. */
+    :global(.pin:not(.pin--motion)) .grow-field { min-height: 400px; }
+    :global(.pin:not(.pin--motion)) .grow-mark { display: none; }
+    :global(.pin:not(.pin--motion)) .grow-final {
+      position: static;
+      transform: none;
+      margin: 26px auto 0;
     }
   }
 </style>

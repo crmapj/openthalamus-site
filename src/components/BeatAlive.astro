@@ -11,10 +11,19 @@ import Mark from "./Mark.astro";
  * Coordinates live in `--x` / `--y` (unitless percentages) so one declaration
  * serves both CSS positioning and the scroll engine's absorption maths.
  */
+/*
+ * Two coordinate sets, not two animations.
+ *
+ * The desktop constellation reads left-to-right: sources rail, relay, engine
+ * rail. Portrait rotates that 90° — sources across the top, the relay in the
+ * middle, engines across the bottom — so signals fall *down* the screen, which
+ * is the direction the thumb is already moving. Same frame logic drives both;
+ * only the geometry differs. `mx`/`my` are the portrait pair.
+ */
 const sources = [
-  { label: "mail", x: 8, y: 18 },
-  { label: "PR review", x: 8, y: 50 },
-  { label: "voice note", x: 8, y: 82 },
+  { label: "mail", x: 8, y: 18, mx: 19, my: 5 },
+  { label: "PR review", x: 8, y: 50, mx: 50, my: 5 },
+  { label: "voice note", x: 8, y: 82, mx: 81, my: 5 },
 ];
 
 /**
@@ -25,14 +34,14 @@ const sources = [
  * first frame, so the motion path is unaffected.
  */
 const engines = [
-  { label: "Codex", x: 90, y: 18, resting: "● running" },
-  { label: "Claude", x: 90, y: 50, resting: "● running" },
-  { label: "Cursor", x: 90, y: 82, resting: "idle" },
+  { label: "Codex", x: 90, y: 18, mx: 18, my: 94, resting: "● running" },
+  { label: "Claude", x: 90, y: 50, mx: 50, my: 94, resting: "● running" },
+  { label: "Cursor", x: 90, y: 82, mx: 82, my: 94, resting: "idle" },
 ];
 
 const queued = [
-  { label: "calendar", x: 3, y: 34 },
-  { label: "linear issue", x: 3.5, y: 66 },
+  { label: "calendar", x: 3, y: 34, mx: 22, my: 20 },
+  { label: "linear issue", x: 3.5, y: 66, mx: 73, my: 20 },
 ];
 
 const ticker = [
@@ -72,14 +81,14 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
           <div class="rail rail--in">
             {
               sources.map((s) => (
-                <div class="node js-source" style={`--x:${s.x};--y:${s.y}`}>
+                <div class="node js-source" style={`--x:${s.x};--y:${s.y};--mx:${s.mx};--my:${s.my}`}>
                   <div class="node-body">{s.label}</div>
                 </div>
               ))
             }
             {
               queued.map((q) => (
-                <div class="node js-queued" style={`--x:${q.x};--y:${q.y}`}>
+                <div class="node js-queued" style={`--x:${q.x};--y:${q.y};--mx:${q.mx};--my:${q.my}`}>
                   <div class="node-body node-body--queued">
                     <span>{q.label}</span>
                     <span class="queued-tag">queued</span>
@@ -92,7 +101,7 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
           <div class="rail rail--out">
             {
               engines.map((e) => (
-                <div class="node js-engine" style={`--x:${e.x};--y:${e.y}`}>
+                <div class="node js-engine" style={`--x:${e.x};--y:${e.y};--mx:${e.mx};--my:${e.my}`}>
                   <div class="node-body node-body--engine">
                     <span class="engine-name">{e.label}</span>
                     <span class="engine-state">{e.resting}</span>
@@ -161,90 +170,82 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
 
   @media (max-width: 860px) {
     /*
-     * The constellation cannot survive a phone. Same DOM, same words — redrawn
-     * as labelled stacks, which is legible where a 54%-scaled diagram is not.
+     * Portrait keeps the constellation — it is rotated, not flattened.
      *
-     * `display: contents` rather than a nested flex column, so the diagram's
-     * children join the field's own column and can be ordered against the
-     * ticker. Nested, the payoff was trapped inside the diagram and therefore
-     * appeared *above* the ticker — summarising a night of events before any of
-     * them had been shown.
+     * An earlier pass reflowed this into vertical stacks and drove them as a
+     * fade cascade, which lost the one thing the beat is about: work arriving,
+     * being routed, and coming out somewhere. Here the sources sit across the
+     * top, the relay in the middle and the engines across the bottom, so the
+     * signals fall down the screen. Same frame logic as desktop; only the
+     * coordinates change.
      */
-    .diagram,
-    :global(.pin:not(.pin--motion)) .diagram {
-      min-height: 0;
-      display: contents;
-    }
-    .field {
-      align-items: center;
-      gap: 14px;
-    }
-    /* The six desktop curves are gone, but one vertical spine remains — it is
-       what makes this beat a route rather than a list. `.diagram` is
-       `display: contents` here, so the field is the positioned ancestor and
-       `inset: 0` covers the whole stack. */
-    .core-label {
-      display: none;
-    }
-    .diagram-svg {
-      z-index: 0;
-    }
-    .node,
-    .core,
-    .ticker,
-    .payoff {
-      position: relative;
-      z-index: 1;
-    }
-    .core {
-      position: relative;
-      transform: none;
-      left: auto;
-      top: auto;
-      order: 2;
-      height: 44px;
-    }
-    .ticker {
-      order: 4;
-      width: 100%;
-    }
-    .rail {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-    }
-    .rail--in {
-      order: 1;
-    }
-    .rail--out {
-      order: 3;
-    }
     .node {
-      position: relative;
-      transform: none;
-      left: auto;
-      top: auto;
+      left: calc(var(--mx) * 1%);
+      top: calc(var(--my) * 1%);
+    }
+    .node-body {
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 11.5px;
     }
     .node-body--engine {
-      flex-direction: row;
       align-items: center;
-      gap: 9px;
+      gap: 3px;
+      padding: 8px 11px;
     }
+    .engine-name { font-size: 10px; letter-spacing: 0.1em; }
+    .engine-state { font-size: 8.5px; }
+    .node-body--queued { padding: 6px 10px; font-size: 11px; }
+    .queued-tag { font-size: 8.5px; }
+
+    .core-ring--outer { width: 64px; height: 64px; }
+    .core-ring--inner { width: 36px; height: 36px; }
+    .core-dot { width: 10px; height: 10px; }
+    .core-label {
+      top: calc(50% + 44px);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+    }
+
+    /* The payoff takes the node's place rather than sitting under it — the
+       node clears just before it lands, so one thing becomes the other. */
     .payoff {
-      position: relative;
-      transform: none;
-      left: auto;
-      right: auto;
-      top: auto;
-      order: 5;
-      align-items: stretch;
-      width: 100%;
-      margin-top: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      gap: 12px;
     }
-    .payoff-label {
-      text-align: center;
+    .payoff-label { font-size: 9.5px; letter-spacing: 0.2em; }
+    .payoff-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      width: 100%;
+      border-radius: 13px;
+    }
+    .payoff-cell {
+      justify-content: center;
+      padding: 16px 10px;
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+    .payoff-rule { display: none; }
+    .payoff-cell:nth-child(odd) { border-right: 1px solid rgba(255, 255, 255, 0.08); }
+    .payoff-cell:nth-child(-n + 2) { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+
+    .field { height: 100%; gap: 12px; }
+    .ticker { gap: 3px; }
+    .tick { gap: 10px; padding: 5px 2px; }
+    .tick-time { width: 38px; font-size: 10px; }
+    .tick-what { font-size: 11.5px; }
+    .tick-who { font-size: 9.5px; }
+
+    /* No-JS and reduced motion still need a box to lay the constellation in. */
+    :global(.pin:not(.pin--motion)) .diagram {
+      min-height: 460px;
+    }
+    :global(.pin:not(.pin--motion)) .payoff {
+      position: static;
+      transform: none;
+      margin-top: 20px;
     }
   }
 </style>

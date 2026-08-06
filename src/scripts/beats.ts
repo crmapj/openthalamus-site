@@ -101,11 +101,12 @@ const num = (el: HTMLElement, prop: string, fallback: number): number => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-const rig = (el: HTMLElement): NodeRig => ({
+/** Portrait uses `--mx`/`--my`; landscape/desktop uses `--x`/`--y`. */
+const rig = (el: HTMLElement, compact = false): NodeRig => ({
   el,
   inner: el.firstElementChild as HTMLElement,
-  x: num(el, "--x", 50),
-  y: num(el, "--y", 50),
+  x: num(el, compact ? "--mx" : "--x", 50),
+  y: num(el, compact ? "--my" : "--y", 50),
 });
 
 const $ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) =>
@@ -166,15 +167,15 @@ function start(pins: HTMLElement[], compact = false): Engine {
   doc.classList.add("motion");
   pins.forEach((p) => p.classList.add("pin--motion"));
 
-  const beats: Beat[] = compact ? compactBeats(pins) : [];
+  const beats: Beat[] = [];
   const cleanups: Array<() => void> = [];
 
   // ── Beat 2 · signals route through the relay and fan out to engines ──
-  const aliveField = compact ? null : document.getElementById("alive-diagram");
+  const aliveField = document.getElementById("alive-diagram");
   if (aliveField) {
-    const sources = $(".js-source").map(rig);
-    const engines = $(".js-engine").map(rig);
-    const queued = $(".js-queued").map(rig);
+    const sources = $(".js-source").map((el) => rig(el, compact));
+    const engines = $(".js-engine").map((el) => rig(el, compact));
+    const queued = $(".js-queued").map((el) => rig(el, compact));
     const ticks = $(".js-tick");
     const payoff = document.getElementById("alive-payoff");
     const ticker = document.getElementById("alive-ticker");
@@ -195,7 +196,7 @@ function start(pins: HTMLElement[], compact = false): Engine {
       // nothing reflows.
       const t = ticker?.getBoundingClientRect().height ?? 0;
       settleY = t ? (t + 16) / 2 : 0;
-      layoutRelayPaths(aliveField, paths, sources, engines);
+      layoutRelayPaths(aliveField, paths, sources, engines, compact);
     };
 
     // Absorption: as the beat resolves, every chip travels into the relay node
@@ -273,11 +274,20 @@ function start(pins: HTMLElement[], compact = false): Engine {
         el.style.transform = `translate(${((1 - t) * -8).toFixed(1)}px, ${((1 - fade) * 12).toFixed(1)}px)`;
       });
 
-      // Slide the whole diagram down into the space the ticker has vacated, so
-      // the node and its payoff land centred rather than pinned to the top
-      // third of the stage.
-      const settle = ease(seg(p, 0.80, 0.93));
-      aliveField.style.transform = settleY ? `translateY(${(settleY * settle).toFixed(1)}px)` : "";
+      if (compact) {
+        // The payoff sits exactly where the node is, so the node and its label
+        // clear just before it lands and one becomes the other.
+        const clear = String(1 - seg(p, 0.86, 0.94));
+        const node = aliveField.querySelector<HTMLElement>(".core");
+        const label = aliveField.querySelector<HTMLElement>(".core-label");
+        if (node) node.style.opacity = clear;
+        if (label) label.style.opacity = clear;
+      } else {
+        // Landscape keeps the node and drops the payoff below it, so the
+        // diagram slides into the space the faded ticker has vacated.
+        const settle = ease(seg(p, 0.8, 0.93));
+        aliveField.style.transform = settleY ? `translateY(${(settleY * settle).toFixed(1)}px)` : "";
+      }
 
       if (payoff) payoff.style.opacity = String(seg(p, 0.88, 0.97));
     };
@@ -286,9 +296,9 @@ function start(pins: HTMLElement[], compact = false): Engine {
   }
 
   // ── Beat 3 · a fresh install grows into a full system, then folds back ──
-  const growField = compact ? null : document.getElementById("grow-field");
+  const growField = document.getElementById("grow-field");
   if (growField) {
-    const chips = $(".js-chip").map(rig);
+    const chips = $(".js-chip").map((el) => rig(el, compact));
     const cmds = $(".js-cmd");
     const labels = $(".js-grow-label");
     const counter = document.getElementById("grow-count");
@@ -383,7 +393,7 @@ function start(pins: HTMLElement[], compact = false): Engine {
   }
 
   // ── Beat 4 · the layers stack, then the kernel boots its ten nouns ──
-  const stack = compact ? null : document.getElementById("kernel-stack");
+  const stack = document.getElementById("kernel-stack");
   if (stack) {
     const layers = $(".js-layer", stack);
     const nouns = $(".js-noun", stack);
@@ -536,8 +546,8 @@ function start(pins: HTMLElement[], compact = false): Engine {
 function paintStaticPaths(): void {
   const alive = document.getElementById("alive-diagram");
   if (alive) {
-    const sources = $(".js-source").map(rig);
-    const engines = $(".js-engine").map(rig);
+    const sources = $(".js-source").map((el) => rig(el));
+    const engines = $(".js-engine").map((el) => rig(el));
     const existing = $<SVGPathElement>("#alive-paths path").map((el) => ({
       el,
       len: 0,
@@ -553,7 +563,7 @@ function paintStaticPaths(): void {
 
   const grow = document.getElementById("grow-field");
   if (grow) {
-    const chips = $(".js-chip").map(rig);
+    const chips = $(".js-chip").map((el) => rig(el));
     const existing = $<SVGPathElement>("#grow-lines path").map((el) => ({
       el,
       len: 0,
@@ -568,259 +578,6 @@ function paintStaticPaths(): void {
   }
 }
 
-
-/* ---------------------------------------------------------------------- *
- * Compact choreography (phones and small tablets)
- *
- * Below 860px the beats reflow from wide constellations into vertical stacks,
- * so the desktop motion — chips absorbing toward a centre, strokes drawn
- * between fixed points — has nothing left to describe. These frames drive the
- * same elements as a staged downward cascade, which is the gesture the thumb is
- * already making. Opacity and translateY only: no geometry is read, so there is
- * nothing to measure and nothing to thrash.
- * ---------------------------------------------------------------------- */
-
-/** Fade + rise a single element to progress `t`. */
-function rise(el: HTMLElement, t: number, dy = 14): void {
-  el.style.opacity = t.toFixed(3);
-  // Cleared at rest so the element is handed back to CSS rather than pinned
-  // under a stale transform.
-  el.style.transform = t >= 0.999 ? "" : `translateY(${((1 - t) * dy).toFixed(1)}px)`;
-}
-
-/** Rise a list in sequence: item i starts at `from + i * step`. */
-function cascade(
-  els: HTMLElement[],
-  p: number,
-  from: number,
-  step: number,
-  dur = 0.14,
-  dy = 14,
-): void {
-  els.forEach((el, i) => {
-    const a = from + i * step;
-    rise(el, ease(clamp01((p - a) / dur)), dy);
-  });
-}
-
-function compactBeats(pins: HTMLElement[]): Beat[] {
-  const out: Beat[] = [];
-
-  // ── "Something is always on." — the spine ──
-  //
-  // The desktop's six curved strokes cannot survive the vertical reflow: the
-  // rails wrap to rows, and six curves between wrapped chips is spaghetti. One
-  // vertical hairline drawn down through the stack — sources, through the
-  // relay, out to the engines — with a single signal riding it. The motion
-  // direction is the thumb's direction, which makes this stronger on this axis
-  // than the desktop metaphor rather than a reduction of it.
-  const aliveDiagram = document.getElementById("alive-diagram");
-  if (aliveDiagram) {
-    const sources = $(".js-source");
-    const queued = $(".js-queued");
-    const engines = $(".js-engine");
-    const ticks = $(".js-tick");
-    const railIn = document.querySelector<HTMLElement>(".rail--in");
-    const railOut = document.querySelector<HTMLElement>(".rail--out");
-    const core = document.querySelector<HTMLElement>("#alive-diagram .core");
-    const payoff = document.getElementById("alive-payoff");
-    const field = aliveDiagram.closest(".field") as HTMLElement | null;
-
-    const spine: PathRig[] = buildRelayPaths(aliveDiagram, 1);
-    const dot = $<SVGCircleElement>("#alive-svg circle")[0];
-
-    const measure = () => {
-      if (!field || !railIn || !railOut || !spine[0]) return;
-      const fr = field.getBoundingClientRect();
-      if (!fr.width) return;
-      const a = railIn.getBoundingClientRect();
-      const b = railOut.getBoundingClientRect();
-      const x = (fr.width / 2).toFixed(1);
-      const y1 = (a.bottom - fr.top + 4).toFixed(1);
-      const y2 = (b.bottom - fr.top - 4).toFixed(1);
-      spine[0].el.setAttribute("d", `M${x} ${y1} L${x} ${y2}`);
-      spine[0].len = spine[0].el.getTotalLength();
-      spine[0].el.style.strokeDasharray = String(spine[0].len);
-      spine[0].pts = sample(spine[0].el, spine[0].len);
-    };
-
-    out.push(
-      makeBeat(
-        "alive",
-        pins,
-        (p) => {
-          cascade(sources, p, 0.02, 0.05);
-          queued.forEach((el, i) => {
-            const t = ease(clamp01((p - (0.10 + i * 0.05)) / 0.14));
-            rise(el, t, 10);
-            // Dimmed: queued is not running, matching the desktop semantics.
-            el.style.opacity = (t * 0.55).toFixed(3);
-          });
-
-          if (core) rise(core, ease(clamp01((p - 0.26) / 0.1)), 8);
-
-          // One continuous draw from the sources, through the relay, to the
-          // engines; then it withdraws back into the node.
-          const draw = ease(clamp01((p - 0.14) / 0.38));
-          const pull = ease(clamp01((p - 0.80) / 0.1));
-          const rig = spine[0];
-          if (rig && rig.len) {
-            rig.el.style.strokeDashoffset = String(rig.len * (1 - draw) + rig.len * pull);
-            rig.el.style.opacity = (1 - pull).toFixed(3);
-            if (dot && rig.pts.length) {
-              const pt = rig.pts[Math.min(rig.pts.length - 1, Math.round(draw * (rig.pts.length - 1)))];
-              dot.setAttribute("cx", pt.x.toFixed(1));
-              dot.setAttribute("cy", pt.y.toFixed(1));
-              dot.style.opacity = String((draw > 0.02 && draw < 0.98 ? 1 : 0) * (1 - pull));
-            }
-          }
-
-          engines.forEach((el, i) => {
-            const a = 0.34 + i * 0.06;
-            rise(el, ease(clamp01((p - a) / 0.14)));
-            // Threshold carries ±1.5% hysteresis so a finger resting on the
-            // boundary cannot strobe the state.
-            const state = el.querySelector<HTMLElement>(".engine-state");
-            if (!state) return;
-            const was = state.dataset.running === "true";
-            const on = a + 0.08;
-            const running = was ? p > on - 0.015 : p > on;
-            if (was !== running) {
-              state.dataset.running = String(running);
-              state.textContent = running ? "● running" : "idle";
-              state.style.color = running ? "#e4e4e4" : "";
-            }
-          });
-
-          cascade(ticks, p, 0.55, 0.06, 0.12, 10);
-          if (payoff) rise(payoff, ease(clamp01((p - 0.86) / 0.12)), 16);
-        },
-        measure,
-      ),
-    );
-  }
-
-  // ── "Starts empty. Grows into anything." — the terminal is the protagonist ──
-  //
-  // Inverted from desktop, where the constellation leads and the terminal
-  // accompanies. A developer parses a terminal instantly at 360px wide, and
-  // typing is inherently a narrow-screen kinetic. Characters are a function of
-  // scroll progress, so scrolling back untypes the command — the moment the
-  // page reads as scrubbed rather than triggered.
-  if (document.getElementById("grow-field")) {
-    const chips = $(".js-chip");
-    const cmds = $(".js-cmd");
-    const labels = $(".js-grow-label");
-    const counter = document.getElementById("grow-count");
-    const head = document.getElementById("grow-head");
-    const mark = document.getElementById("grow-mark");
-    const term = document.getElementById("grow-term");
-    const final = document.getElementById("grow-final");
-    const WAVE = [0.06, 0.26, 0.46, 0.64];
-    const SPAN = 0.18;
-    // Captured once: the frame slices these rather than reading the DOM back.
-    const cmdText = cmds.map((el) => el.querySelector("code")?.textContent ?? "");
-    let last = -1;
-
-    out.push(
-      makeBeat("grow", pins, (p) => {
-        // Type the command through the first 60% of its wave, then eject chips.
-        cmds.forEach((el, i) => {
-          const code = el.querySelector("code");
-          const caret = el.querySelector<HTMLElement>(".grow-caret");
-          const w = clamp01((p - WAVE[i]) / (SPAN * 0.6));
-          const started = p >= WAVE[i] - 0.01;
-          el.style.opacity = started ? (p > WAVE[i] + SPAN ? "0.45" : "1") : "0";
-          if (code) {
-            const n = Math.round(w * cmdText[i].length);
-            const next = cmdText[i].slice(0, n);
-            if (code.textContent !== next) code.textContent = next;
-          }
-          if (caret) caret.style.opacity = started && w < 1 ? "1" : "0";
-        });
-
-        let count = 0;
-        chips.forEach((el) => {
-          const wv = Number(el.dataset.wave ?? 0);
-          const k = Number(el.dataset.k ?? 0);
-          // Chips land in the last 40% of their wave, after the command reads.
-          const from = WAVE[wv] + SPAN * 0.6 + k * 0.04;
-          const t = ease(clamp01((p - from) / 0.1));
-          if (t > 0.6) count++;
-          // Contract back toward the list as the beat folds.
-          const fold = ease(clamp01((p - 0.84) / 0.08));
-          el.style.opacity = (t * (1 - fold)).toFixed(3);
-          el.style.transform =
-            t >= 0.999 && fold <= 0
-              ? ""
-              : `translateY(${((1 - t) * 10 + fold * 10).toFixed(1)}px) scale(${(0.85 + 0.15 * t).toFixed(3)})`;
-        });
-
-        // Half this beat's copywriting lives in the wave labels; mobile used to
-        // drop them entirely.
-        labels.forEach((el, i) => {
-          const inO = clamp01((p - (WAVE[i] - 0.03)) / 0.05);
-          const outO = i === labels.length - 1 ? 0 : clamp01((p - (WAVE[i + 1] - 0.05)) / 0.05);
-          el.style.opacity = (inO * (1 - outO)).toFixed(3);
-        });
-
-        if (counter && count !== last) {
-          last = count;
-          counter.textContent = `Plugins installed · ${count}`;
-        }
-
-        // The fold is the emotional payoff of the page; the list is not an ending.
-        const chrome = 1 - clamp01((p - 0.84) / 0.08);
-        if (term) term.style.opacity = chrome.toFixed(3);
-        if (head) head.style.opacity = chrome.toFixed(3);
-        if (mark) {
-          const mo = ease(clamp01((p - 0.88) / 0.08));
-          mark.style.opacity = mo.toFixed(3);
-          mark.style.transform = `translate(-50%, -50%) scale(${(0.6 + 0.4 * mo).toFixed(3)})`;
-        }
-        if (final) rise(final, ease(clamp01((p - 0.91) / 0.07)), 10);
-      }),
-    );
-  }
-
-  // ── "Under everything, a kernel." — layers stack, nouns boot ──
-  const stack = document.getElementById("kernel-stack");
-  if (stack) {
-    const layers = $(".js-layer", stack);
-    const nouns = $(".js-noun", stack);
-    out.push(
-      makeBeat("kernel", pins, (p) => {
-        layers.forEach((el, i) => {
-          const t = ease(clamp01((p - (0.04 + i * 0.09)) / 0.2));
-          el.style.opacity = t.toFixed(3);
-          // A whisper of the desktop's alternation — enough DNA to rhyme, not
-          // enough to look misaligned at full width.
-          const x = (1 - t) * (i % 2 ? 10 : -10);
-          el.style.transform = t >= 0.999 ? "" : `translate(${x.toFixed(1)}px, ${((1 - t) * 18).toFixed(1)}px)`;
-
-          // The drain IS this beat: the UI fill recedes to bedrock and only the
-          // hairline is left. Compact mode never had it.
-          const solid = 1 - ease(clamp01((p - 0.46) / 0.18));
-          const isKernel = el.classList.contains("layer--kernel");
-          el.style.background = isKernel
-            ? `rgba(255,255,255,${(0.014 + 0.02 * (1 - solid)).toFixed(3)})`
-            : `rgba(19,19,19,${solid.toFixed(3)})`;
-          const label = el.querySelector<HTMLElement>(".layer-name");
-          if (label && !isKernel) label.style.opacity = (0.4 + 0.6 * solid).toFixed(2);
-        });
-
-        // Ten singles at 2.4% spacing reads as noise on a phone; pairs read as
-        // a boot sequence.
-        nouns.forEach((el, i) => {
-          const pair = Math.floor(i / 2);
-          rise(el, ease(clamp01((p - (0.64 + pair * 0.07)) / 0.1)), 8);
-        });
-      }),
-    );
-  }
-
-  return out;
-}
 
 /** Wires a frame function to its pin, carrying an optional measure step. */
 function makeBeat(
@@ -880,6 +637,7 @@ function layoutRelayPaths(
   paths: PathRig[],
   sources: NodeRig[],
   engines: NodeRig[],
+  compact = false,
 ): void {
   const fr = field.getBoundingClientRect();
   if (!fr.width) return;
@@ -888,26 +646,45 @@ function layoutRelayPaths(
 
   const rel = (el: HTMLElement) => {
     const r = el.getBoundingClientRect();
-    return { l: r.left - fr.left, r: r.right - fr.left, m: r.top - fr.top + r.height / 2 };
+    return {
+      l: r.left - fr.left,
+      r: r.right - fr.left,
+      m: r.top - fr.top + r.height / 2,
+      c: r.left - fr.left + r.width / 2,
+      t: r.top - fr.top,
+      b: r.bottom - fr.top,
+    };
   };
 
-  const curve = (x1: number, y1: number, x2: number, y2: number) => {
-    const mx = x1 + (x2 - x1) * 0.5;
-    return `M${x1} ${y1} C${mx} ${y1},${mx} ${y2},${x2} ${y2}`;
+  // Landscape routes across the screen; portrait routes down it. Same curve,
+  // rotated: the control points travel along the axis of the journey.
+  const hcurve = (x1: number, y1: number, x2: number, y2: number) => {
+    const m = x1 + (x2 - x1) * 0.5;
+    return `M${x1} ${y1} C${m} ${y1},${m} ${y2},${x2} ${y2}`;
+  };
+  const vcurve = (x1: number, y1: number, x2: number, y2: number) => {
+    const m = y1 + (y2 - y1) * 0.5;
+    return `M${x1} ${y1} C${x1} ${m},${x2} ${m},${x2} ${y2}`;
   };
 
   sources.forEach((n, i) => {
     const path = paths[i];
     if (!path) return;
     const b = rel(n.el);
-    path.el.setAttribute("d", curve(b.r + 10, b.m, cx - 34, cy));
+    path.el.setAttribute(
+      "d",
+      compact ? vcurve(b.c, b.b + 8, cx, cy - 26) : hcurve(b.r + 10, b.m, cx - 34, cy),
+    );
   });
 
   engines.forEach((n, i) => {
     const path = paths[sources.length + i];
     if (!path) return;
     const b = rel(n.el);
-    path.el.setAttribute("d", curve(cx + 34, cy, b.l - 10, b.m));
+    path.el.setAttribute(
+      "d",
+      compact ? vcurve(cx, cy + 26, b.c, b.t - 8) : hcurve(cx + 34, cy, b.l - 10, b.m),
+    );
   });
 
   for (const path of paths) {

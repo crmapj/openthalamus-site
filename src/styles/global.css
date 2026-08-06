@@ -444,6 +444,17 @@ h1 .dim { color: var(--text-faint); }
 .beat {
   border-top: 1px solid var(--border-faint);
 }
+
+/* Anchor jumps must clear the sticky mobile bar. */
+@media (max-width: 860px) {
+  .beat,
+  .define,
+  .questions,
+  .close,
+  #waitlist {
+    scroll-margin-top: 62px;
+  }
+}
 .beat--alive { background: #090909; }
 .beat--grow { background: #080808; }
 .beat--kernel { background: var(--surface-void); }
@@ -1340,9 +1351,47 @@ html.motion .reveal.in {
   /* Touch targets. Pointer-coarse fingers need ~44px; these were 15–19px tall
      mono links, which is a miss on the three most-used links on the page. */
   .kernel-links { gap: 4px 20px; }
-  .nav { flex-wrap: wrap; row-gap: 4px; }
-  .nav-spacer { display: none; }
-  .nav-links { gap: 4px 16px; flex-wrap: wrap; width: 100%; }
+
+  /* Sticky blurred bar; the links live in the overlay panel, so the bar itself
+     is just the mark and the glyph. */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    gap: 11px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-faint);
+    max-width: none;
+  }
+  /*
+   * The bar's blur lives on a pseudo-element, not on `.nav` itself.
+   *
+   * `backdrop-filter` makes an element a containing block for fixed-position
+   * descendants — so with it on the bar, the full-screen menu panel resolved
+   * against the 60px bar instead of the viewport and rendered as a transparent
+   * sliver over the hero.
+   */
+  .nav::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgba(10, 10, 10, 0.86);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  /* Over the open panel there is nothing worth blurring, and the translucency
+     was washing the wordmark out. */
+  :global(html.nav-open) .nav {
+    border-bottom-color: transparent;
+  }
+  :global(html.nav-open) .nav::before {
+    background: rgba(8, 8, 8, 0.97);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .nav .wordmark { font-size: 15.5px; }
+  .nav .pulse-dot { width: 6px; height: 6px; }
   .nav-links .dest,
   .footer-links .dest,
   .footer-links a,
@@ -1403,9 +1452,35 @@ html.motion .reveal.in {
   /* Desktop pins are 280/400/200vh. On a 390x844 screen that is 5-9 full
      swipes per beat, which reads as the page having stopped. These are ~1.5-2
      swipes each, so a beat resolves within a single gesture. */
-  .pin[data-beat="alive"]  { --pin-vh: 220vh; }
-  .pin[data-beat="grow"]   { --pin-vh: 280vh; }
-  .pin[data-beat="kernel"] { --pin-vh: 190vh; }
+  /* Per the mobile handoff. */
+  .pin[data-beat="alive"]  { --pin-vh: 300vh; }
+  .pin[data-beat="grow"]   { --pin-vh: 420vh; }
+  .pin[data-beat="kernel"] { --pin-vh: 240vh; }
+  /* Clears the sticky bar (~51px) with room to breathe. */
+  .stage { padding: 68px 16px 22px; }
+
+  /*
+   * The kernel beat carries its own heading inside the pinned stage, so all of
+   * it — copy, links and four layer cards — has to fit one 100svh box. At
+   * desktop sizing it overflowed and the stage's centring clipped the heading
+   * off the top. These are the handoff's mobile values.
+   */
+  .kernel-grid { gap: 20px; }
+  .kernel-copy { gap: 12px; }
+  .kernel-copy h2 { font-size: 32px; }
+  .kernel-copy .beat-sub { font-size: 14.5px; }
+  .stack { gap: 9px; }
+  .layer {
+    padding: 13px 15px;
+    gap: 12px;
+    border-radius: 11px;
+  }
+  .layer--kernel { padding: 15px; gap: 11px; }
+  .layer-name { font-size: 9px; letter-spacing: 0.15em; width: 62px; }
+  .layer-item { font-size: 12px; }
+  .kernel-rule { font-size: 9px; letter-spacing: 0.09em; }
+  .nouns { gap: 6px; }
+  .noun { font-size: 10.5px; padding: 4px 8px; }
 
   .close-inner { padding-block: 92px 64px; }
   .close-h { font-size: clamp(30px, 8.4vw, 44px); }

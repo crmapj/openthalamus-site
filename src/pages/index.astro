@@ -72,6 +72,28 @@ const title = "thalamus — the fully extensible, self-hosted agentic OS";
     revealTargets.forEach((el) => el.classList.add("in"));
   }
 
+  /* ── Mobile menu ─────────────────────────────────────────────────────────
+     State is one class on <html>, so the glyph, the panel and its stagger are
+     all CSS. Closing on anchor click matters: every destination is an in-page
+     jump, so without it the panel would sit over the section it just scrolled
+     to. */
+  const navToggle = document.getElementById("nav-toggle");
+  const navLinks = document.getElementById("nav-links");
+  const setNav = (open: boolean) => {
+    document.documentElement.classList.toggle("nav-open", open);
+    navToggle?.setAttribute("aria-expanded", String(open));
+    navToggle?.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  };
+  navToggle?.addEventListener("click", () =>
+    setNav(!document.documentElement.classList.contains("nav-open")),
+  );
+  navLinks?.addEventListener("click", (e) => {
+    if ((e.target as HTMLElement).closest("a")) setNav(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setNav(false);
+  });
+
   /* ── Copy the install command (only rendered once install goes live) ───── */
   document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
     btn.addEventListener("click", async () => {

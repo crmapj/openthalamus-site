@@ -63,7 +63,7 @@ const state = await cdp(ws, ++id, "Runtime.evaluate", { returnByValue: true, exp
 console.log(`${W}x${H} ->`, state.result.value);
 
 for (const beat of ["alive", "grow", "kernel"]) {
-  for (const prog of [0.15, 0.4, 0.65, 0.9]) {
+  for (const prog of [0.15, 0.4, 0.65, 0.9, 0.99]) {
     await cdp(ws, ++id, "Runtime.evaluate", { awaitPromise: true, expression: `(async()=>{
       const pin=document.querySelector('[data-beat="${beat}"]');
       if(!pin) return;

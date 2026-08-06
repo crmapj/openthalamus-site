@@ -2,6 +2,27 @@
 import Mark from "./Mark.astro";
 import Destination from "./Destination.astro";
 import { site } from "../config/site";
+
+/**
+ * One nav, two presentations.
+ *
+ * On desktop this is the design's quiet top row. Below 860px it becomes the
+ * handoff's mobile pattern: a sticky blurred bar with a two-bar glyph that
+ * folds into a cross, and `.nav-links` itself expands into the full-screen
+ * panel — the same anchors, restyled, rather than a second copy of the menu in
+ * the DOM.
+ *
+ * The section links are mobile-only in presentation but always in the markup:
+ * they are in-page anchors to real sections, which is exactly what a crawler
+ * should see, and hiding them on desktop matches the desktop design's quieter
+ * top row.
+ */
+const sections = [
+  { href: "#alive", label: "Always on" },
+  { href: "#plugins", label: "Plugins" },
+  { href: "#architecture", label: "Kernel" },
+  { href: "#waitlist", label: "Waitlist" },
+];
 ---
 
 <nav class="nav shell" aria-label="Primary">
@@ -11,9 +32,152 @@ import { site } from "../config/site";
   </a>
   <span class="pulse-dot" aria-hidden="true"></span>
   <span class="nav-spacer"></span>
-  <div class="nav-links">
-    <Destination to="architecture" />
-    <Destination to="docs" />
-    <Destination to="github" />
+
+  <button
+    class="nav-toggle"
+    id="nav-toggle"
+    type="button"
+    aria-label="Open menu"
+    aria-expanded="false"
+    aria-controls="nav-links"
+  >
+    <span class="nav-bar" aria-hidden="true"></span>
+    <span class="nav-bar" aria-hidden="true"></span>
+  </button>
+
+  <div class="nav-links" id="nav-links">
+    <div class="nav-sections">
+      {sections.map((s) => <a class="nav-section" href={s.href}>{s.label}</a>)}
+    </div>
+    <div class="nav-dests">
+      <Destination to="architecture" />
+      <Destination to="docs" />
+      <Destination to="github" />
+    </div>
+    <span class="nav-status" aria-hidden="true">{site.status}</span>
   </div>
 </nav>
+
+<style>
+  /* ── The glyph: two bars that fold into a cross ── */
+  .nav-toggle {
+    display: none;
+    width: 46px;
+    height: 46px;
+    margin: -8px -12px -8px 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    z-index: 60;
+  }
+  .nav-bar {
+    width: 19px;
+    height: 1.5px;
+    background: var(--text-bright);
+    border-radius: 1px;
+    transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  :global(html.nav-open) .nav-bar:first-child {
+    transform: translateY(3.25px) rotate(45deg);
+  }
+  :global(html.nav-open) .nav-bar:last-child {
+    transform: translateY(-3.25px) rotate(-45deg);
+  }
+
+  .nav-sections,
+  .nav-status {
+    display: none;
+  }
+
+  @media (max-width: 860px) {
+    .nav-toggle {
+      display: flex;
+    }
+
+    .nav-links {
+      position: fixed;
+      inset: 0;
+      z-index: 55;
+      background: rgba(8, 8, 8, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 240ms ease;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 24px;
+      gap: 0;
+      width: auto;
+    }
+    :global(html.nav-open) .nav-links {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .nav-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nav-section {
+      border: none;
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: -0.032em;
+      color: var(--text-primary);
+      padding: 11px 0;
+    }
+
+    .nav-dests {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding-top: 30px;
+      margin-top: 26px;
+      border-top: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .nav-status {
+      display: block;
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 38px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.13em;
+      color: var(--text-ghost);
+    }
+
+    /* Panel children stagger in behind the fade. */
+    .nav-links > * {
+      opacity: 0;
+      transform: translateY(10px);
+      transition:
+        opacity 300ms ease,
+        transform 300ms cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+    :global(html.nav-open) .nav-links > * {
+      opacity: 1;
+      transform: none;
+    }
+    :global(html.nav-open) .nav-links > :nth-child(1) { transition-delay: 60ms; }
+    :global(html.nav-open) .nav-links > :nth-child(2) { transition-delay: 100ms; }
+    :global(html.nav-open) .nav-links > :nth-child(3) { transition-delay: 140ms; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-bar,
+    .nav-links,
+    .nav-links > * {
+      transition: none !important;
+    }
+  }
+</style>
