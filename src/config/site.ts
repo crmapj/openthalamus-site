@@ -45,7 +45,7 @@ export const site = {
    * The belief the product is built on, in its shortest honest form. Used in
    * the definition section and llms.txt; worth keeping identical in both.
    */
-  bet: "Code is becoming cheap. Coherence, judgment and attention are not.",
+  bet: "Code is becoming cheap. Coherence, judgement and attention are not.",
   /**
    * The repo LICENSE file says MIT (T3 Tools Inc. + thalamus contributors).
    * The design mock said AGPL; the repo wins, because this is a factual claim
@@ -89,7 +89,7 @@ export const destinations: Record<DestinationKey, Destination> = {
     key: "docs",
     label: "Docs",
     href: "/docs",
-    note: "Docs land when there is a build worth self-hosting.",
+    note: "Docs land with v0."
   },
   github: {
     key: "github",
@@ -102,7 +102,7 @@ export const destinations: Record<DestinationKey, Destination> = {
     key: "install",
     label: "Install",
     href: `${site.url}/install.sh`,
-    note: "The installer ships with v0.",
+    note: "The installer ships with v0."
   },
 };
 

@@ -41,7 +41,7 @@ const body = `# thalamus
 Software is being commoditised. Generation, review and iteration are compressing,
 so code is becoming cheap, fast and abundant. When code is no longer the scarce
 resource, three things become scarce instead: **coherence** (knowing what is true
-across projects, people and time), **judgment** (deciding what should run, ship,
+across projects, people and time), **judgement** (deciding what should run, ship,
 wait, or never touch production), and **attention** (the human loop that still
 owns irreversible, external and high-stakes moves).
 
@@ -56,7 +56,7 @@ the system that remembers, routes, gates — and works the way you want it to.
 - Site: ${site.url}
 - Licence: ${site.license} (${site.licenseUrl})
 - Price: free. Self-hosted, so you pay only for your own compute and model tokens.
-- Status: pre-release (v0). Interfaces, contracts and storage layouts can still change.
+- Status: pre-release (v0), shipping soon. Interfaces, contracts and storage layouts can still change until release.
 - Runtime: Node.js / TypeScript. Linux and macOS.
 - Install: \`${installCommand}\`${soon("install")}
 - Hosting model: self-hosted only. No account, no tenancy, no hosted service.
@@ -64,7 +64,7 @@ the system that remembers, routes, gates — and works the way you want it to.
 
 ## Kernel and extensibility
 
-The kernel is deliberately small — ten nouns, and an eleventh needs a proposal:
+The kernel is deliberately small — ten dedicated nouns:
 authority, action log, trust gate, jobs, memory port, resource registry, RPC
 registry, plugin lifecycle, clock, settlement receipts.
 
@@ -73,7 +73,7 @@ manifest, declared capabilities and default-deny permissions. Below it are
 drivers: memory, model, transport, storage. Both are replaceable, and extending
 thalamus means writing a plugin rather than forking it.
 
-Honest limit today: the v0 plugin host runs a bounded reference adapter. It does
+Current limit: the v0 plugin host runs a bounded reference adapter. It does
 not yet load arbitrary third-party code and is not an untrusted-code sandbox;
 community plugins stay quarantined until that boundary is real.
 
@@ -90,12 +90,11 @@ community plugins stay quarantined until that boundary is real.
 - [Something is always on](${site.url}/#alive): how signals route through the relay to whichever engine is free.
 - [Starts empty, grows into anything](${site.url}/#plugins): the plugin model.
 - [Under everything, a kernel](${site.url}/#architecture): the layer stack and the ten kernel nouns.
-- [Questions](${site.url}/#what): what an agentic OS is, whether thalamus is really one, plugins, cost, and what does not work yet.
-- [The honest bit](${site.url}/#honest): what is and is not true of v0 today.
+- [Questions](${site.url}/#what): what an agentic OS is, whether thalamus is really one, plugins, cost, and when you can install it.
 
 ## Optional
 
-- [Waitlist](${site.url}/#waitlist): where to hear when there is a build worth self-hosting.
+- [Waitlist](${site.url}/#waitlist): one email the day v0 is installable.
 - [Source repository](${site.repo})${soon("github")}
 `;
 

@@ -5,9 +5,9 @@ import Destination from "./Destination.astro";
  * Beat 4 — "Under everything, a kernel."
  *
  * The four layers stack in, then the UI fill recedes until only the kernel's
- * hairline is left and its ten nouns boot one by one. The "eleventh needs a
- * proposal" line is the actual governance rule, not a slogan: the kernel's
- * surface area is fixed by design.
+ * hairline is left and its ten nouns boot one by one. "Ten dedicated nouns" is
+ * a statement about restraint: the kernel's surface area is fixed by design,
+ * and everything else is a plugin or a driver.
  */
 const layers = [
   { name: "Shells", items: ["web", "desktop", "ios", "cli"] },
@@ -36,9 +36,9 @@ const nouns = [
         <div class="kernel-copy">
           <h2 id="kernel-h" class="reveal">Under everything, a kernel.</h2>
           <p class="beat-sub reveal">
-            One memory that never resets. One gate with a dial, not popups. One log that
-            answers for the night. Swappable engines, drivers, and plugins on top — an OS
-            built to be built on.
+            One memory that never resets. One gate you set once. One log for everything
+            that ran overnight. Engines, drivers and plugins swap out above a small
+            kernel — an OS you build on.
           </p>
           <div class="kernel-links reveal">
             <Destination to="architecture" arrow />
@@ -61,7 +61,7 @@ const nouns = [
           <div class="layer layer--kernel js-layer">
             <div class="layer-kernel-top">
               <span class="layer-name">Kernel</span>
-              <span class="kernel-rule">Ten nouns · an eleventh needs a proposal</span>
+              <span class="kernel-rule">Ten dedicated nouns</span>
             </div>
             <ul class="nouns">
               {nouns.map((n) => <li class="noun js-noun">{n}</li>)}

@@ -16,9 +16,13 @@ import { installCommand, site } from "../config/site";
  * nothing else. The value here is the plain one: the query appears verbatim as
  * a heading directly above a self-contained answer.
  *
- * Q2 and Q5 carry the load-bearing honesty. "Agentic OS" is a big claim for a
- * v0, and it only stays credible because the limits are stated in the same
- * breath as the ambition. Do not soften either.
+ * Q2, Q5 and Q8 now carry ALL of the load-bearing honesty. The "honest bit"
+ * disclosure that used to sit in the closing section was removed on 2026-08-06,
+ * so these three answers are the only place the limits are stated — what it is
+ * not, what the plugin host cannot do yet, and what you cannot run today.
+ * "Agentic OS" is a big claim for a v0 and it stays credible only because those
+ * limits sit beside the ambition. Do not soften them, and do not remove them
+ * without putting them somewhere else first.
  */
 const qs = [
   {
@@ -27,11 +31,11 @@ const qs = [
   },
   {
     q: "Is thalamus actually an operating system?",
-    a: `It won't boot your laptop, and it doesn't want to. It is an OS in the structural sense: a ten-noun kernel owns jobs, memory, authority and the action log; drivers make engines and memory backends swappable; everything else is a plugin with declared, default-deny capabilities. The test that matters — extending it means writing a plugin, not a fork. v0 is early; the shape is already this.`,
+    a: `It will not replace the operating system on your machine. It is an OS in the structural sense: a ten-noun kernel owns jobs, memory, authority and the action log; drivers make engines and memory backends swappable; everything else is a plugin with declared, default-deny capabilities. The test that matters — extending it means writing a plugin, not a fork. v0 is early; the shape is already this.`,
   },
   {
     q: "What tools orchestrate multiple coding agents?",
-    a: `Most options are a task board over one vendor's agent, or a hosted service that owns your state. thalamus takes the OS position instead: Claude Code, Codex, opencode and local models are adapters behind a driver port, jobs are durable and survive restarts — the meta-harness — and switching engines leaves your memory, history and trust rules exactly where they were. On your box.`,
+    a: `Others put a task board over one vendor's agent, or host your state for you. thalamus takes the OS position: Claude Code, Codex, opencode and local models are adapters behind a driver port, jobs are durable and survive restarts, and switching engines leaves your memory, history and trust rules exactly where they were. On your box.`,
   },
   {
     q: "How do I share memory between Claude Code and Codex?",
@@ -39,7 +43,7 @@ const qs = [
   },
   {
     q: "Can I build my own thalamus plugins?",
-    a: `That's the whole design. Every capability above the kernel is a plugin — surfaces, sources, skills, harnesses — with a manifest, declared capabilities and default-deny permissions. Official ones install with one command; yours can start as a folder a coding agent wrote this afternoon. The honest limit today: the v0 host runs a bounded reference adapter, and third-party code stays quarantined until the sandbox boundary is real.`,
+    a: `That's the whole design. Every capability above the kernel is a plugin — surfaces, sources, skills, harnesses — with a manifest, declared capabilities and default-deny permissions. Official ones install with one command; yours can start as a folder a coding agent wrote for you. The current limit: the v0 host runs a bounded reference adapter, and third-party code stays quarantined until the sandbox boundary is real.`,
   },
   {
     q: "Is thalamus self-hosted, and is there a cloud version?",
@@ -50,8 +54,8 @@ const qs = [
     a: `Nothing. Free, ${site.license} licensed, self-hosted — the only bills are your own compute and your own model tokens. That follows from the bet: code generation is a commodity, so the OS meters it like one. Spend caps live in the trust gate, and an overnight run has a ceiling you set.`,
   },
   {
-    q: "Can I install and use thalamus today?",
-    a: `Not yet. v0 is pre-release: the repository is private, the installer (${installCommand}) does not exist yet, and interfaces, contracts and storage layouts can still change. The waitlist below is the honest answer — one email when there is a build worth running on your own box.`,
+    q: "When can I install thalamus?",
+    a: `Soon — v0 is close. Today the repository is still private and \`${installCommand}\` is not live yet, so the waitlist below is the real answer: one email the day it runs, and nothing before it. Between now and then, interfaces, contracts and storage layouts can still move.`,
   },
 ];
 ---
@@ -59,8 +63,8 @@ const qs = [
 <section class="questions" aria-labelledby="q-h">
   <div class="shell q-inner">
     <header class="q-head">
-      <p class="eyebrow">Questions</p>
-      <h2 id="q-h">Asked directly, answered directly.</h2>
+      <p class="eyebrow">FAQ</p>
+      <h2 id="q-h">Questions.</h2>
       <p class="q-count" aria-hidden="true">{String(qs.length).padStart(2, "0")} questions</p>
     </header>
 

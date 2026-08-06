@@ -960,8 +960,8 @@ h2 {
  * The pinned beats each resolve in a centred moment on the dot grid. This is
  * the one the visitor acts in, so it is staged the same way rather than being
  * a fourth left-aligned card. Hierarchy is decided, not averaged: the form is
- * the ending; install command, assurances and the honest bit are metadata,
- * demoted below a rule.
+ * the ending; the install command and assurances are metadata, demoted below
+ * a rule.
  * ====================================================================== */
 
 .close {
@@ -969,7 +969,9 @@ h2 {
   border-top: 1px solid var(--border-faint);
 }
 .close-inner {
-  padding: 150px 0 130px;
+  /* Bottom padding trimmed when the disclosure block was removed — the rule and
+     metadata band no longer have a third element under them to balance. */
+  padding: 150px 0 96px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1180,43 +1182,6 @@ html.motion .result.show { animation: riseIn 420ms ease-out both; }
   color: var(--text-faint);
 }
 .assurances .sep { color: #3a3a3a; }
-
-.honest {
-  border: none;
-  padding: 0;
-  max-width: 62ch;
-  width: 100%;
-}
-.honest summary {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  cursor: pointer;
-  padding: 6px 0;
-  list-style: none;
-}
-.honest summary::-webkit-details-marker { display: none; }
-.honest summary::after { content: " +"; }
-.honest[open] summary::after { content: " \2212"; }
-.honest summary:hover { color: var(--text-secondary); }
-.honest-body {
-  text-align: left;
-  padding-top: 10px;
-}
-.honest-body p {
-  margin: 0 0 12px;
-  font-size: 14.5px;
-  line-height: 1.6;
-  color: var(--text-tertiary);
-}
-.honest-body p:last-child { margin-bottom: 0; }
-.honest-body strong {
-  color: var(--text-secondary);
-  font-weight: 550;
-}
 
 /* ── Footer ── */
 

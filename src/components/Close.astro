@@ -11,16 +11,20 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
   than a fourth left-aligned card.
 
   Hierarchy is decided rather than averaged: the form is the ending, and the
-  install command, assurances and honest bit are metadata demoted below a rule.
+  install command and assurances are metadata demoted below a rule.
+
+  The "honest bit" disclosure that used to sit here was removed on Chris's call
+  (2026-08-06) — the page is written for the release it is about to be, not for
+  the state of the repository this week. The limits are still stated, but where
+  someone actually asks for them: the last two answers in the FAQ above.
 -->
 <section class="close" id="get">
   <div class="close-inner shell">
     <div class="close-head reveal">
-      <p class="eyebrow">Waitlist · pre-release</p>
-      <h2 class="close-h">Get told when it's<br />worth self-hosting.</h2>
+      <p class="eyebrow">Waitlist · v0</p>
+      <h2 class="close-h">Get notified<br />on release.</h2>
       <p class="close-sub">
-        One email when there is a build worth running on your own box. No drip
-        sequence, no sharing, no other use.
+        One email the day you can install it. No newsletter, no sharing, no other use.
       </p>
     </div>
 
@@ -38,7 +42,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
             inputmode="email"
             placeholder="you@example.com"
           />
-          <button class="btn" type="submit" id="submit-btn">Request access</button>
+          <button class="btn" type="submit" id="submit-btn">Join the waitlist</button>
         </div>
 
         {/* Honeypot: bots fill every field they find; humans never see this. */}
@@ -81,7 +85,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
         <p class="form-err" id="form-err" hidden></p>
 
         <p class="form-note">
-          One email, stored to tell you about thalamus. Nothing else, no sharing.{" "}
+          Stored only to send that one email. Never shared.{" "}
           {
             turnstileSiteKey && (
               <>
@@ -125,35 +129,6 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
         <span>Every action logged</span><span class="sep" aria-hidden="true">·</span>
         <span>{site.license} licensed</span>
       </p>
-
-      <!-- The pre-release position, stated plainly and in the visitor's interest.
-           It is also the passage an answer engine quotes when asked "is this
-           ready" — a vague answer gets paraphrased into something wrong. -->
-      <details class="honest" id="honest">
-        <summary>The honest bit</summary>
-        <div class="honest-body">
-          <p>
-            The OS claim is about shape, not maturity. The kernel, the trust gate, the
-            driver ports and the plugin host are real. The installer, the public
-            repository and the polish are not yet. Every OS you respect shipped a v0
-            once — this is that stage.
-          </p>
-          <p>
-            thalamus is <strong>pre-release</strong>. Interfaces, contracts and storage
-            layouts can still change between versions, and there is no upgrade guarantee
-            across them yet.
-          </p>
-          <p>
-            The plugin host runs a bounded reference adapter — it does not yet load
-            arbitrary third-party code, and it is not an untrusted-code sandbox.
-            Community plugins stay quarantined until that boundary is real.
-          </p>
-          <p>
-            It is self-hosted by design: no account, no tenancy, no hosted service. You
-            run it on your own hardware, or you do not run it.
-          </p>
-        </div>
-      </details>
     </div>
   </div>
 </section>

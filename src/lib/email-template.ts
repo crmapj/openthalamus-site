@@ -71,8 +71,8 @@ way you want to work is the thing worth owning.
                   adapters. Jobs, results, cost and resume belong to the OS.
 
 WHAT HAPPENS NEXT
-You'll get one email when there's a build worth self-hosting. Not a newsletter,
-not a drip sequence — one email. We won't share your address.
+You'll get one email the day you can install it. Not a newsletter, not a drip
+sequence — one email. We won't share your address.
 
   https://openthalamus.dev
 
@@ -95,7 +95,7 @@ thalamus · MIT licensed · pre-release`;
 <!-- Preheader: the grey preview line next to the subject in most inboxes.
      Hidden in the body itself, then padded so no other copy leaks into it. -->
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;height:0;width:0;">
-  One email when there's a build worth self-hosting. Nothing else.
+  One email the day you can install it. Nothing else.
   &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
 </div>
 
@@ -154,7 +154,7 @@ thalamus · MIT licensed · pre-release`;
               <div style="font-family:${MONO};font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${DIM};padding-bottom:7px;">What happens next</div>
               <p style="margin:0 0 22px 0;font-family:${SANS};font-size:14.5px;line-height:1.6;color:${MUTED};">
                 You'll get <strong style="color:${TEXT};font-weight:600;">one email</strong> when there's a build
-                worth self-hosting. Not a newsletter, not a drip sequence. We won't share your address.
+                the day you can install it. Not a newsletter, not a drip sequence. We won't share your address.
               </p>
             </td>
           </tr>
