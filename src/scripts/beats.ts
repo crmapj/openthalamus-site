@@ -30,7 +30,22 @@
  * twice when the observer never fired.
  */
 
-const MOTION_QUERY = "(min-width: 900px) and (min-height: 600px)";
+/*
+ * Motion runs at every size. It used to be gated behind
+ * `(min-width: 900px) and (min-height: 600px)`, which meant every phone and
+ * tablet got a static document — the beats were the page's whole argument and
+ * they simply did not happen on the primary device.
+ *
+ * Phones do not get the desktop choreography shrunk, though. The wide
+ * compositions (left rail → relay → right rail, radial plugin constellation)
+ * reflow to vertical stacks below 860px, so their spatial motion — absorbing
+ * chips toward a centre, strokes drawn between fixed points — has nothing to
+ * describe. Compact mode drives the same elements as a downward cascade
+ * instead: the thing a thumb is already doing.
+ *
+ * `prefers-reduced-motion` remains the one hard blocker.
+ */
+const COMPACT_QUERY = "(max-width: 860px)";
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
 /** Samples per path for the precomputed point table. */
@@ -89,29 +104,36 @@ const $ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = docu
   Array.from(root.querySelectorAll(sel)) as T[];
 
 export function initBeats(): void {
-  const motionMQ = window.matchMedia(MOTION_QUERY);
+  const compactMQ = window.matchMedia(COMPACT_QUERY);
   const reducedMQ = window.matchMedia(REDUCED_QUERY);
 
   const pins = $(".pin");
   if (!pins.length) return;
 
   let engine: Engine | null = null;
+  let engineCompact = false;
 
   const sync = () => {
-    const wanted = motionMQ.matches && !reducedMQ.matches;
-    if (wanted && !engine) engine = start(pins);
-    else if (!wanted && engine) {
+    const wanted = !reducedMQ.matches;
+    const compact = compactMQ.matches;
+    // Crossing the breakpoint swaps choreography, so the old one is torn down
+    // and its inline styles handed back to CSS first.
+    if (engine && (!wanted || compact !== engineCompact)) {
       engine.destroy();
       engine = null;
+    }
+    if (wanted && !engine) {
+      engine = start(pins, compact);
+      engineCompact = compact;
     }
     // Reduced motion on a wide screen still gets the constellation, so draw its
     // routing strokes once, at rest. They are the diagram's whole argument —
     // without them it is a scatter of labels — and a static line is not motion.
-    if (!wanted && motionMQ.matches) paintStaticPaths();
+    if (!wanted && !compact) paintStaticPaths();
   };
 
   sync();
-  motionMQ.addEventListener("change", sync);
+  compactMQ.addEventListener("change", sync);
   reducedMQ.addEventListener("change", sync);
 
   // The running engine handles its own resizes. This covers the static path:
@@ -129,16 +151,16 @@ interface Engine {
   destroy(): void;
 }
 
-function start(pins: HTMLElement[]): Engine {
+function start(pins: HTMLElement[], compact = false): Engine {
   const doc = document.documentElement;
   doc.classList.add("motion");
   pins.forEach((p) => p.classList.add("pin--motion"));
 
-  const beats: Beat[] = [];
+  const beats: Beat[] = compact ? compactBeats(pins) : [];
   const cleanups: Array<() => void> = [];
 
   // ── Beat 2 · signals route through the relay and fan out to engines ──
-  const aliveField = document.getElementById("alive-diagram");
+  const aliveField = compact ? null : document.getElementById("alive-diagram");
   if (aliveField) {
     const sources = $(".js-source").map(rig);
     const engines = $(".js-engine").map(rig);
@@ -254,7 +276,7 @@ function start(pins: HTMLElement[]): Engine {
   }
 
   // ── Beat 3 · a fresh install grows into a full system, then folds back ──
-  const growField = document.getElementById("grow-field");
+  const growField = compact ? null : document.getElementById("grow-field");
   if (growField) {
     const chips = $(".js-chip").map(rig);
     const cmds = $(".js-cmd");
@@ -351,7 +373,7 @@ function start(pins: HTMLElement[]): Engine {
   }
 
   // ── Beat 4 · the layers stack, then the kernel boots its ten nouns ──
-  const stack = document.getElementById("kernel-stack");
+  const stack = compact ? null : document.getElementById("kernel-stack");
   if (stack) {
     const layers = $(".js-layer", stack);
     const nouns = $(".js-noun", stack);
@@ -523,6 +545,128 @@ function paintStaticPaths(): void {
       p.el.style.opacity = "1";
     }
   }
+}
+
+
+/* ---------------------------------------------------------------------- *
+ * Compact choreography (phones and small tablets)
+ *
+ * Below 860px the beats reflow from wide constellations into vertical stacks,
+ * so the desktop motion — chips absorbing toward a centre, strokes drawn
+ * between fixed points — has nothing left to describe. These frames drive the
+ * same elements as a staged downward cascade, which is the gesture the thumb is
+ * already making. Opacity and translateY only: no geometry is read, so there is
+ * nothing to measure and nothing to thrash.
+ * ---------------------------------------------------------------------- */
+
+/** Fade + rise a single element to progress `t`. */
+function rise(el: HTMLElement, t: number, dy = 14): void {
+  el.style.opacity = t.toFixed(3);
+  // Cleared at rest so the element is handed back to CSS rather than pinned
+  // under a stale transform.
+  el.style.transform = t >= 0.999 ? "" : `translateY(${((1 - t) * dy).toFixed(1)}px)`;
+}
+
+/** Rise a list in sequence: item i starts at `from + i * step`. */
+function cascade(
+  els: HTMLElement[],
+  p: number,
+  from: number,
+  step: number,
+  dur = 0.14,
+  dy = 14,
+): void {
+  els.forEach((el, i) => {
+    const a = from + i * step;
+    rise(el, ease(clamp01((p - a) / dur)), dy);
+  });
+}
+
+function compactBeats(pins: HTMLElement[]): Beat[] {
+  const out: Beat[] = [];
+
+  // ── "Something is always on." — sources, relay, engines, ticker, payoff ──
+  if (document.getElementById("alive-diagram")) {
+    const sources = $(".js-source");
+    const queued = $(".js-queued");
+    const engines = $(".js-engine");
+    const ticks = $(".js-tick");
+    const core = document.querySelector<HTMLElement>("#alive-diagram .core");
+    const payoff = document.getElementById("alive-payoff");
+
+    out.push(
+      makeBeat("alive", pins, (p) => {
+        cascade(sources, p, 0.02, 0.05);
+        cascade(queued, p, 0.14, 0.05, 0.14, 10);
+        if (core) rise(core, ease(clamp01((p - 0.22) / 0.12)), 8);
+
+        engines.forEach((el, i) => {
+          const a = 0.3 + i * 0.05;
+          rise(el, ease(clamp01((p - a) / 0.14)));
+          // The state flip is the point of this beat; it lands as each card does.
+          const running = p > a + 0.1 && i < 2;
+          const state = el.querySelector<HTMLElement>(".engine-state");
+          if (state && state.dataset.running !== String(running)) {
+            state.dataset.running = String(running);
+            state.textContent = running ? "● running" : "idle";
+            state.style.color = running ? "#e4e4e4" : "";
+          }
+        });
+
+        cascade(ticks, p, 0.5, 0.045, 0.12, 10);
+        if (payoff) rise(payoff, ease(clamp01((p - 0.78) / 0.16)), 16);
+      }),
+    );
+  }
+
+  // ── "Starts empty. Grows into anything." — four waves, then the line ──
+  if (document.getElementById("grow-field")) {
+    const chips = $(".js-chip");
+    const cmds = $(".js-cmd");
+    const counter = document.getElementById("grow-count");
+    const final = document.getElementById("grow-final");
+    const WAVE = [0.04, 0.2, 0.36, 0.52];
+    let last = -1;
+
+    out.push(
+      makeBeat("grow", pins, (p) => {
+        let count = 0;
+        chips.forEach((el) => {
+          const w = Number(el.dataset.wave ?? 0);
+          const k = Number(el.dataset.k ?? 0);
+          const t = ease(clamp01((p - (WAVE[w] + k * 0.03)) / 0.12));
+          if (t > 0.6) count++;
+          rise(el, t, 10);
+        });
+
+        cmds.forEach((el, i) => {
+          const t = clamp01((p - (0.02 + i * 0.13)) / 0.06);
+          el.style.opacity = (t * (i === cmds.length - 1 || p < 0.15 + i * 0.13 ? 1 : 0.5)).toFixed(3);
+        });
+
+        if (counter && count !== last) {
+          last = count;
+          counter.textContent = `Plugins installed · ${count}`;
+        }
+        if (final) rise(final, ease(clamp01((p - 0.74) / 0.18)), 16);
+      }),
+    );
+  }
+
+  // ── "Under everything, a kernel." — layers stack, nouns boot ──
+  const stack = document.getElementById("kernel-stack");
+  if (stack) {
+    const layers = $(".js-layer", stack);
+    const nouns = $(".js-noun", stack);
+    out.push(
+      makeBeat("kernel", pins, (p) => {
+        cascade(layers, p, 0.04, 0.09, 0.2, 18);
+        cascade(nouns, p, 0.5, 0.022, 0.1, 6);
+      }),
+    );
+  }
+
+  return out;
 }
 
 /** Wires a frame function to its pin, carrying an optional measure step. */

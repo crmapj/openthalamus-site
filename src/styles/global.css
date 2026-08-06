@@ -480,6 +480,16 @@ h2 {
  * nothing. The engine already skips inactive beats, which is the win that
  * actually mattered.
  */
+/*
+ * Pin length lives here, not in an inline style: an inline custom property
+ * beats every stylesheet rule regardless of media query, so pin length could
+ * not otherwise be made responsive — and a desktop-length pin on a phone is a
+ * very long thumb drag.
+ */
+.pin[data-beat="alive"]  { --pin-vh: 280vh; }
+.pin[data-beat="grow"]   { --pin-vh: 400vh; }
+.pin[data-beat="kernel"] { --pin-vh: 200vh; }
+
 .pin {
   position: relative;
   height: var(--pin-vh);
@@ -1324,6 +1334,7 @@ html.motion .reveal.in {
 
   /* Touch targets. Pointer-coarse fingers need ~44px; these were 15–19px tall
      mono links, which is a miss on the three most-used links on the page. */
+  .kernel-links { gap: 4px 20px; }
   .nav { flex-wrap: wrap; row-gap: 4px; }
   .nav-spacer { display: none; }
   .nav-links { gap: 4px 16px; flex-wrap: wrap; width: 100%; }
@@ -1379,9 +1390,17 @@ html.motion .reveal.in {
   .grow-cmd .prompt-sigil { flex: none; }
   .grow-cmd code { min-width: 0; }
   .grow-cmd .comment { display: none; }
+  .grow-cmd .agent-prompt { white-space: nowrap; }
   /* With the command wrapping, the caret is stranded against the right edge and
      reads as a stray white block rather than a cursor. */
   .grow-caret { display: none; }
+
+  /* Desktop pins are 280/400/200vh. On a 390x844 screen that is 5-9 full
+     swipes per beat, which reads as the page having stopped. These are ~1.5-2
+     swipes each, so a beat resolves within a single gesture. */
+  .pin[data-beat="alive"]  { --pin-vh: 190vh; }
+  .pin[data-beat="grow"]   { --pin-vh: 240vh; }
+  .pin[data-beat="kernel"] { --pin-vh: 170vh; }
 
   .close-inner { padding-block: 92px 64px; }
   .close-h { font-size: clamp(30px, 8.4vw, 44px); }

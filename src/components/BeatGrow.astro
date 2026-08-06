@@ -41,7 +41,7 @@ const labels = [
     </p>
   </div>
 
-  <div class="pin" data-beat="grow" style="--pin-vh:400vh">
+  <div class="pin" data-beat="grow">
     <div class="stage">
       <div class="grow-wrap">
         <div class="grow-head" id="grow-head">
@@ -173,13 +173,19 @@ const labels = [
     .chip {
       position: static;
       transform: none;
-      opacity: 1 !important;
+    }
+    /* Guards a desktop -> mobile resize from leaving a stale inline opacity,
+       without overriding the engine while it is actually driving them. */
+    :global(html:not(.motion)) .chip {
+      opacity: 1;
     }
     .grow-final {
       position: static;
       transform: none;
       margin: 34px auto 0;
-      opacity: 1 !important;
+    }
+    :global(html:not(.motion)) .grow-final {
+      opacity: 1;
     }
     .grow-head {
       height: auto;
