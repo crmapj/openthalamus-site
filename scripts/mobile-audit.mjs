@@ -1,3 +1,20 @@
+/**
+ * Mobile audit: measures what actually breaks on a phone, at the three widths
+ * that cover most of the market.
+ *
+ * Screenshots alone hide the failures that matter — a heading flush to the
+ * screen edge reads as deliberate at a glance, and a 15px tap target looks fine
+ * until you try to hit it. So this reports numbers as well as pictures:
+ * horizontal overflow, elements wider than the viewport, body text under 12px,
+ * and interactive elements under 40px tall.
+ *
+ * It found the bug it was written for: every `.shell` section set its vertical
+ * rhythm with a `padding:` shorthand, which resets the `padding-inline` that
+ * supplies the gutter. Masked on desktop by the 1240px max-width; edge-to-edge
+ * on every phone.
+ *
+ *   npm run audit:mobile [baseUrl]
+ */
 import { spawn } from "node:child_process";
 import { writeFile, rm } from "node:fs/promises";
 const PORT=9340, BASE=process.argv[2] ?? "http://127.0.0.1:4399/", PROF="/tmp/ma-prof";
