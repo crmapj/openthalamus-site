@@ -1,5 +1,6 @@
 ---
 import Mark from "./Mark.astro";
+import BrandMark from "./BrandMark.astro";
 
 /**
  * Beat 3 — "Starts empty. Grows into anything."
@@ -10,14 +11,14 @@ import Mark from "./Mark.astro";
  * the chip and feed the engine's reach maths.
  */
 const chips = [
-  { label: "Gmail", wave: 0, k: 0, x: 50, y: 25, mx: 30, my: 4 },
+  { label: "Gmail", wave: 0, k: 0, x: 50, y: 25, mx: 30, my: 4, mark: "gmail" },
   { label: "memory-gbrain", wave: 0, k: 1, x: 70.8, y: 62.5, mx: 50, my: 16 },
-  { label: "Calendar", wave: 0, k: 2, x: 29.2, y: 62.5, mx: 25, my: 29 },
+  { label: "Calendar", wave: 0, k: 2, x: 29.2, y: 62.5, mx: 25, my: 29, mark: "calendar" },
   { label: "harness-codex", wave: 1, k: 0, x: 75.5, y: 25.25, mx: 50, my: 41 },
-  { label: "harness-claude", wave: 1, k: 1, x: 50, y: 85, mx: 50, my: 59 },
-  { label: "Linear", wave: 1, k: 2, x: 24.5, y: 25.25, mx: 83, my: 50 },
+  { label: "harness-claude", wave: 1, k: 1, x: 50, y: 85, mx: 50, my: 59, mark: "claude" },
+  { label: "Linear", wave: 1, k: 2, x: 24.5, y: 25.25, mx: 83, my: 50, mark: "linear" },
   { label: "Attio", wave: 2, k: 0, x: 86, y: 50, mx: 16, my: 50 },
-  { label: "GitHub PRs", wave: 2, k: 1, x: 14, y: 50, mx: 28, my: 72 },
+  { label: "GitHub PRs", wave: 2, k: 1, x: 14, y: 50, mx: 28, my: 72, mark: "github" },
   { label: "Morning brief", wave: 2, k: 2, x: 67, y: 9.35, mx: 74, my: 29 },
   { label: "habit-coach", wave: 3, k: 0, x: 33, y: 9.35, mx: 72, my: 72 },
   { label: "podcaster", wave: 3, k: 1, x: 11, y: 66.8, mx: 70, my: 4 },
@@ -70,7 +71,10 @@ const labels = [
                   data-k={c.k}
                   style={`--x:${c.x};--y:${c.y};--mx:${c.mx};--my:${c.my}`}
                 >
-                  <span class="chip-body">{c.label}</span>
+                  <span class="chip-body">
+                    {c.mark && <BrandMark name={c.mark} />}
+                    {c.label}
+                  </span>
                 </li>
               ))
             }

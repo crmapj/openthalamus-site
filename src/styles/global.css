@@ -356,6 +356,33 @@ h1 .dim { color: var(--text-faint); }
   border-color: var(--border-subtle);
 }
 
+/* ── "Works with" — harness recognition under the install line ── */
+
+.works {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.works-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-secondary);
+}
+.works-more {
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
 /* ── LAST NIGHT card grid ── */
 
 .night {
@@ -1354,6 +1381,8 @@ html.motion .reveal.in {
    * re-applies the offset after any static rule. The offset has to be zeroed at
    * its source.
    */
+  .works { gap: 10px; }
+  .works-marks { gap: 12px; }
   .night { grid-template-columns: repeat(2, 1fr); gap: 11px; }
   .night-card--drop { --rest: 0px; transform: none; }
   .night-card { padding: 13px 14px; gap: 7px; border-radius: 11px; }

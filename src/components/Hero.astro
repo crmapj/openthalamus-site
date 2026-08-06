@@ -1,5 +1,6 @@
 ---
 import InstallBlock from "./InstallBlock.astro";
+import BrandMark from "./BrandMark.astro";
 
 /**
  * "Last night" — the product's actual promise, shown as artefacts rather than
@@ -9,6 +10,24 @@ import InstallBlock from "./InstallBlock.astro";
  * The names here are illustrative. Deliberately fictional: this is a public
  * page, and a real client name on it would be a client-data leak.
  */
+/*
+ * The harnesses thalamus drives, as recognition rather than a claim.
+ *
+ * Exactly the set the rest of the page claims — Claude Code, Codex, opencode,
+ * local models, plus Cursor from the relay beat. Nothing aspirational: an
+ * engine listed here has to be one we say we support elsewhere.
+ *
+ * Codex carries no glyph on purpose. OpenAI asked to be removed from Simple
+ * Icons, so redrawing their mark is the one thing not to do — it is named in
+ * text instead, which is also the strongest name in the row.
+ */
+const harnesses = [
+  { mark: "claude", name: "Claude Code" },
+  { mark: "cursor", name: "Cursor" },
+  { mark: "opencode", name: "opencode" },
+  { mark: "ollama", name: "local models via Ollama" },
+];
+
 const night = [
   {
     kind: "Draft PR",
@@ -49,6 +68,18 @@ const night = [
     <div class="rise" style="--delay:760ms">
       <InstallBlock animate />
     </div>
+
+    <p class="works rise" style="--delay:880ms">
+      <span class="works-label">Works with</span>
+      <span class="works-marks">
+        {harnesses.map((h) => <BrandMark name={h.mark} size={15} />)}
+      </span>
+      {/* The marks are decorative, so the names they stand for live here — read
+          in place, between "Works with" and the visible "+ Codex", so the whole
+          row is one sentence to a screen reader. */}
+      <span class="sr-only">{harnesses.map((h) => h.name).join(", ")}</span>
+      <span class="works-more">+ Codex</span>
+    </p>
   </div>
 
   {/* The overnight run, as artefacts. */}

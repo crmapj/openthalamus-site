@@ -1,0 +1,44 @@
+---
+/**
+ * A third-party brand mark, monochrome, sized to sit beside text.
+ *
+ * Always decorative: every mark appears next to its own name in the adjacent
+ * text, so announcing it again would just be a duplicate for a screen reader.
+ * An unknown slug renders nothing rather than a broken box — the chips it sits
+ * in must survive a mark being unavailable, which several deliberately are.
+ */
+import { brandMarks } from "../data/brand-marks";
+
+interface Props {
+  name: keyof typeof brandMarks | string;
+  size?: number;
+  class?: string;
+}
+const { name, size = 12, class: className } = Astro.props;
+const mark = brandMarks[name];
+---
+
+{
+  mark && (
+    <svg
+      class:list={["brand-mark", className]}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={mark.path} />
+    </svg>
+  )
+}
+
+<style>
+  .brand-mark {
+    flex-shrink: 0;
+    /* Dimmer than the label it sits beside: the name is the content, the mark
+       is recognition. */
+    opacity: 0.62;
+  }
+</style>

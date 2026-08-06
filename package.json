@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "openthalamus.dev \u2014 landing page and waitlist for thalamus",
+  "description": "openthalamus.dev — landing page and waitlist for thalamus",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@types/nodemailer": "^8.0.1",
-    "sharp": "^0.34.4"
+    "sharp": "^0.34.4",
+    "simple-icons": "^16.28.0"
   }
 }
