@@ -101,19 +101,6 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
               ))
             }
           </div>
-        </div>
-
-        <ol class="ticker">
-          {
-            ticker.map((t) => (
-              <li class="tick js-tick">
-                <span class="tick-time">{t.time}</span>
-                <span class="tick-what">{t.what}</span>
-                <span class="tick-who">{t.who}</span>
-              </li>
-            ))
-          }
-        </ol>
 
         <div class="payoff" id="alive-payoff">
           <span class="payoff-label">While you were out</span>
@@ -131,6 +118,20 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
             }
           </div>
         </div>
+        </div>
+
+        <ol class="ticker" id="alive-ticker">
+          {
+            ticker.map((t) => (
+              <li class="tick js-tick">
+                <span class="tick-time">{t.time}</span>
+                <span class="tick-what">{t.what}</span>
+                <span class="tick-who">{t.who}</span>
+              </li>
+            ))
+          }
+        </ol>
+
       </div>
     </div>
   </div>
@@ -154,11 +155,11 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
   :global(.pin:not(.pin--motion)) .diagram {
     min-height: 440px;
   }
-  :global(.pin:not(.pin--motion)) .payoff {
-    position: static;
-    transform: none;
-    align-items: flex-start;
-    margin-top: 28px;
+  /* Sits below the node in every mode, so it stays absolute here — a static
+     payoff would flow to the top of the box and land on the constellation,
+     because the nodes around it are absolutely positioned and out of flow. */
+  :global(.pin:not(.pin--motion)) .diagram {
+    min-height: 520px;
   }
 
   @media (max-width: 860px) {
@@ -207,6 +208,17 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
     }
     .ticker {
       margin-top: 8px;
+    }
+    .payoff {
+      position: static;
+      transform: none;
+      order: 4;
+      align-items: stretch;
+      width: 100%;
+      margin-top: 4px;
+    }
+    .payoff-label {
+      text-align: center;
     }
   }
 </style>

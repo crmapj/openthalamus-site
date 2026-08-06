@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "openthalamus.dev — landing page and waitlist for thalamus",
+  "description": "openthalamus.dev \u2014 landing page and waitlist for thalamus",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -11,7 +11,8 @@
     "start": "node ./dist/server/entry.mjs",
     "assets": "node scripts/build-og.mjs && node scripts/build-icons.mjs",
     "qa:shots": "node scripts/qa-shots.mjs",
-    "e2e": "node scripts/e2e.mjs"
+    "e2e": "node scripts/e2e.mjs",
+    "audit:mobile": "node scripts/mobile-audit.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^9.2.2",

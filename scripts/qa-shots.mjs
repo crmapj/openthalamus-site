@@ -87,7 +87,7 @@ async function run({ name, w, h, reduced, at }) {
     mobile: w < 500,
   });
   await cdp(ws, ++id, "Page.navigate", { url: BASE });
-  await sleep(1800); // entrance animations settle
+  await sleep(2400); // entrance animations settle (type-on ends at 1880ms)
 
   const { result: metrics } = await cdp(ws, ++id, "Runtime.evaluate", {
     expression: "JSON.stringify({sh: document.documentElement.scrollHeight, ih: innerHeight})",

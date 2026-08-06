@@ -145,16 +145,24 @@ function start(pins: HTMLElement[]): Engine {
     const queued = $(".js-queued").map(rig);
     const ticks = $(".js-tick");
     const payoff = document.getElementById("alive-payoff");
+    const ticker = document.getElementById("alive-ticker");
     const paths: PathRig[] = buildRelayPaths(aliveField, sources.length + engines.length);
     const dots = $<SVGCircleElement>("#alive-svg circle");
 
     let fw = 0;
     let fh = 0;
+    let settleY = 0;
 
     const measure = () => {
       const r = aliveField.getBoundingClientRect();
       fw = r.width;
       fh = r.height;
+      // The ticker fades but keeps its box, which left the node sitting high
+      // with a third of the stage empty beneath it. Sliding the diagram down by
+      // half the vacated height re-centres the closing frame. A transform, so
+      // nothing reflows.
+      const t = ticker?.getBoundingClientRect().height ?? 0;
+      settleY = t ? (t + 16) / 2 : 0;
       layoutRelayPaths(aliveField, paths, sources, engines);
     };
 
@@ -182,7 +190,27 @@ function start(pins: HTMLElement[]): Engine {
         const inbound = i < sources.length;
         const startAt = inbound ? 0.1 + i * 0.055 : 0.36 + (i - sources.length) * 0.055;
         const t = ease(seg(p, startAt, startAt + 0.16));
-        path.el.style.strokeDashoffset = String(path.len * (1 - t));
+
+        /*
+         * Retraction. The chips absorb into the node by transform, but the
+         * strokes stayed anchored where the chips used to be — so the closing
+         * frame had lines hanging in empty space, running off past the diagram
+         * edges. They now withdraw into the node instead.
+         *
+         * Direction matters. With `stroke-dasharray: len`, a positive offset
+         * un-draws from the path's END and a negative one from its START.
+         * Inbound paths run source → node, so they retract with a negative
+         * offset (the source end travels inward); outbound run node → engine,
+         * so they retract positive. Both ends therefore move toward the centre,
+         * which is what "collapse back in on themselves" has to look like.
+         *
+         * Leads the fade slightly so the movement is legible before the opacity
+         * takes the stroke away.
+         */
+        const retract = ease(seg(p, 0.76 + i * 0.012, 0.89 + i * 0.012));
+        const drawn = path.len * (1 - t);
+        const pull = path.len * retract * (inbound ? -1 : 1);
+        path.el.style.strokeDashoffset = String(drawn + pull);
         path.el.style.opacity = String(fade);
 
         const dot = dots[i];
@@ -190,7 +218,8 @@ function start(pins: HTMLElement[]): Engine {
           const pt = path.pts[Math.min(path.pts.length - 1, Math.round(t * (path.pts.length - 1)))];
           dot.setAttribute("cx", pt.x.toFixed(1));
           dot.setAttribute("cy", pt.y.toFixed(1));
-          dot.style.opacity = String((t > 0.03 && t < 0.97 ? 1 : 0) * fade);
+          // The signal has arrived by the time the line withdraws.
+          dot.style.opacity = String((t > 0.03 && t < 0.97 ? 1 : 0) * fade * (1 - retract));
         }
       });
 
@@ -211,6 +240,12 @@ function start(pins: HTMLElement[]): Engine {
         el.style.opacity = String(t * fade);
         el.style.transform = `translate(${((1 - t) * -8).toFixed(1)}px, ${((1 - fade) * 12).toFixed(1)}px)`;
       });
+
+      // Slide the whole diagram down into the space the ticker has vacated, so
+      // the node and its payoff land centred rather than pinned to the top
+      // third of the stage.
+      const settle = ease(seg(p, 0.80, 0.93));
+      aliveField.style.transform = settleY ? `translateY(${(settleY * settle).toFixed(1)}px)` : "";
 
       if (payoff) payoff.style.opacity = String(seg(p, 0.88, 0.97));
     };
