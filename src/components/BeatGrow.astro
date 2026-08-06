@@ -158,10 +158,16 @@ const labels = [
       height: auto;
       min-height: 0;
     }
+    /* The radial connector geometry is desktop-only — a wrapped list is the
+       correct vertical form. The mark is not: the fold into it is the payoff of
+       the whole page, and mobile used to end this beat on a list. */
     #grow-svg,
-    .grow-core,
-    .grow-mark {
+    .grow-core {
       display: none;
+    }
+    .grow-mark {
+      display: block;
+      z-index: 5;
     }
     .chip-list {
       display: flex;
@@ -184,15 +190,30 @@ const labels = [
       transform: none;
       margin: 34px auto 0;
     }
+    /* Only while the engine is driving: the mark is absolutely centred in the
+       field, so the closing line has to be pinned beneath it or it strands
+       itself under a collapsed chip list. The resting state stays in flow. */
+    :global(html.motion) .grow-final {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(50% + 76px);
+      margin: 0;
+    }
     :global(html:not(.motion)) .grow-final {
       opacity: 1;
     }
     .grow-head {
-      height: auto;
-      min-height: 26px;
+      position: relative;
+      height: 62px;
     }
+    /* Half this beat's copywriting; it was being dropped on phones entirely. */
     .grow-label {
-      display: none;
+      display: flex;
+      inset: 26px 0 0;
+      font-size: 18px;
+      justify-content: center;
+      text-align: center;
     }
     .grow-count {
       position: static;

@@ -108,7 +108,12 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  /* `clip`, not `hidden`: `overflow: hidden` creates a scroll container, and if
+     this ever migrates to a wrapper element that wrapper becomes the sticky
+     containing scroller and every pinned beat dies silently. `clip` never does.
+     For the same reason: no transform, filter or perspective on `.pin` or any
+     of its ancestors, ever. */
+  overflow-x: clip;
 }
 
 a {
@@ -1398,9 +1403,9 @@ html.motion .reveal.in {
   /* Desktop pins are 280/400/200vh. On a 390x844 screen that is 5-9 full
      swipes per beat, which reads as the page having stopped. These are ~1.5-2
      swipes each, so a beat resolves within a single gesture. */
-  .pin[data-beat="alive"]  { --pin-vh: 190vh; }
-  .pin[data-beat="grow"]   { --pin-vh: 240vh; }
-  .pin[data-beat="kernel"] { --pin-vh: 170vh; }
+  .pin[data-beat="alive"]  { --pin-vh: 220vh; }
+  .pin[data-beat="grow"]   { --pin-vh: 280vh; }
+  .pin[data-beat="kernel"] { --pin-vh: 190vh; }
 
   .close-inner { padding-block: 92px 64px; }
   .close-h { font-size: clamp(30px, 8.4vw, 44px); }

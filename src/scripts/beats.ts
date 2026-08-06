@@ -46,6 +46,14 @@
  * `prefers-reduced-motion` remains the one hard blocker.
  */
 const COMPACT_QUERY = "(max-width: 860px)";
+/*
+ * Too short to pin anything. A landscape phone is ~390px tall, and the compact
+ * stacks are ~700px — inside a `100svh` stage with `overflow: hidden` the beat
+ * plays clipped top and bottom. The old motion gate carried a `min-height: 600`
+ * for exactly this and it was lost when the gate came off. Static composed flow
+ * instead; the teardown path already exists.
+ */
+const TOO_SHORT_QUERY = "(max-height: 500px)";
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
 /** Samples per path for the precomputed point table. */
@@ -105,6 +113,7 @@ const $ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = docu
 
 export function initBeats(): void {
   const compactMQ = window.matchMedia(COMPACT_QUERY);
+  const shortMQ = window.matchMedia(TOO_SHORT_QUERY);
   const reducedMQ = window.matchMedia(REDUCED_QUERY);
 
   const pins = $(".pin");
@@ -114,7 +123,7 @@ export function initBeats(): void {
   let engineCompact = false;
 
   const sync = () => {
-    const wanted = !reducedMQ.matches;
+    const wanted = !reducedMQ.matches && !shortMQ.matches;
     const compact = compactMQ.matches;
     // Crossing the breakpoint swaps choreography, so the old one is torn down
     // and its inline styles handed back to CSS first.
@@ -134,6 +143,7 @@ export function initBeats(): void {
 
   sync();
   compactMQ.addEventListener("change", sync);
+  shortMQ.addEventListener("change", sync);
   reducedMQ.addEventListener("change", sync);
 
   // The running engine handles its own resizes. This covers the static path:
@@ -409,10 +419,21 @@ function start(pins: HTMLElement[], compact = false): Engine {
   // a sticky stage that has never been on screen can report a zero-sized box, so
   // its own measure() is deferred until it first becomes active.
   const measurePins = () => {
-    const vh = window.innerHeight;
     for (const b of beats) {
       b.top = b.pin.offsetTop;
-      b.span = Math.max(1, b.pin.offsetHeight - vh);
+      /*
+       * Sticky travel is the pin minus the STAGE, not minus the viewport.
+       *
+       * The stage is `100svh` — the *small* viewport, which never changes.
+       * `window.innerHeight` is the dynamic one: on iOS it grows ~60px the
+       * moment the URL bar collapses on the first downward flick, fires
+       * `resize`, and after the debounce every beat's progress mapping shifts
+       * mid-scrub. Measuring the element we actually pinned makes bar collapse
+       * a no-op.
+       */
+      const stage = b.pin.firstElementChild as HTMLElement | null;
+      const travel = b.pin.offsetHeight - (stage?.offsetHeight ?? window.innerHeight);
+      b.span = Math.max(1, travel);
     }
   };
 
@@ -585,70 +606,179 @@ function cascade(
 function compactBeats(pins: HTMLElement[]): Beat[] {
   const out: Beat[] = [];
 
-  // ── "Something is always on." — sources, relay, engines, ticker, payoff ──
-  if (document.getElementById("alive-diagram")) {
+  // ── "Something is always on." — the spine ──
+  //
+  // The desktop's six curved strokes cannot survive the vertical reflow: the
+  // rails wrap to rows, and six curves between wrapped chips is spaghetti. One
+  // vertical hairline drawn down through the stack — sources, through the
+  // relay, out to the engines — with a single signal riding it. The motion
+  // direction is the thumb's direction, which makes this stronger on this axis
+  // than the desktop metaphor rather than a reduction of it.
+  const aliveDiagram = document.getElementById("alive-diagram");
+  if (aliveDiagram) {
     const sources = $(".js-source");
     const queued = $(".js-queued");
     const engines = $(".js-engine");
     const ticks = $(".js-tick");
+    const railIn = document.querySelector<HTMLElement>(".rail--in");
+    const railOut = document.querySelector<HTMLElement>(".rail--out");
     const core = document.querySelector<HTMLElement>("#alive-diagram .core");
     const payoff = document.getElementById("alive-payoff");
+    const field = aliveDiagram.closest(".field") as HTMLElement | null;
+
+    const spine: PathRig[] = buildRelayPaths(aliveDiagram, 1);
+    const dot = $<SVGCircleElement>("#alive-svg circle")[0];
+
+    const measure = () => {
+      if (!field || !railIn || !railOut || !spine[0]) return;
+      const fr = field.getBoundingClientRect();
+      if (!fr.width) return;
+      const a = railIn.getBoundingClientRect();
+      const b = railOut.getBoundingClientRect();
+      const x = (fr.width / 2).toFixed(1);
+      const y1 = (a.bottom - fr.top + 4).toFixed(1);
+      const y2 = (b.bottom - fr.top - 4).toFixed(1);
+      spine[0].el.setAttribute("d", `M${x} ${y1} L${x} ${y2}`);
+      spine[0].len = spine[0].el.getTotalLength();
+      spine[0].el.style.strokeDasharray = String(spine[0].len);
+      spine[0].pts = sample(spine[0].el, spine[0].len);
+    };
 
     out.push(
-      makeBeat("alive", pins, (p) => {
-        cascade(sources, p, 0.02, 0.05);
-        cascade(queued, p, 0.14, 0.05, 0.14, 10);
-        if (core) rise(core, ease(clamp01((p - 0.22) / 0.12)), 8);
+      makeBeat(
+        "alive",
+        pins,
+        (p) => {
+          cascade(sources, p, 0.02, 0.05);
+          queued.forEach((el, i) => {
+            const t = ease(clamp01((p - (0.10 + i * 0.05)) / 0.14));
+            rise(el, t, 10);
+            // Dimmed: queued is not running, matching the desktop semantics.
+            el.style.opacity = (t * 0.55).toFixed(3);
+          });
 
-        engines.forEach((el, i) => {
-          const a = 0.3 + i * 0.05;
-          rise(el, ease(clamp01((p - a) / 0.14)));
-          // The state flip is the point of this beat; it lands as each card does.
-          const running = p > a + 0.1 && i < 2;
-          const state = el.querySelector<HTMLElement>(".engine-state");
-          if (state && state.dataset.running !== String(running)) {
-            state.dataset.running = String(running);
-            state.textContent = running ? "● running" : "idle";
-            state.style.color = running ? "#e4e4e4" : "";
+          if (core) rise(core, ease(clamp01((p - 0.26) / 0.1)), 8);
+
+          // One continuous draw from the sources, through the relay, to the
+          // engines; then it withdraws back into the node.
+          const draw = ease(clamp01((p - 0.14) / 0.38));
+          const pull = ease(clamp01((p - 0.80) / 0.1));
+          const rig = spine[0];
+          if (rig && rig.len) {
+            rig.el.style.strokeDashoffset = String(rig.len * (1 - draw) + rig.len * pull);
+            rig.el.style.opacity = (1 - pull).toFixed(3);
+            if (dot && rig.pts.length) {
+              const pt = rig.pts[Math.min(rig.pts.length - 1, Math.round(draw * (rig.pts.length - 1)))];
+              dot.setAttribute("cx", pt.x.toFixed(1));
+              dot.setAttribute("cy", pt.y.toFixed(1));
+              dot.style.opacity = String((draw > 0.02 && draw < 0.98 ? 1 : 0) * (1 - pull));
+            }
           }
-        });
 
-        cascade(ticks, p, 0.5, 0.045, 0.12, 10);
-        if (payoff) rise(payoff, ease(clamp01((p - 0.78) / 0.16)), 16);
-      }),
+          engines.forEach((el, i) => {
+            const a = 0.34 + i * 0.06;
+            rise(el, ease(clamp01((p - a) / 0.14)));
+            // Threshold carries ±1.5% hysteresis so a finger resting on the
+            // boundary cannot strobe the state.
+            const state = el.querySelector<HTMLElement>(".engine-state");
+            if (!state) return;
+            const was = state.dataset.running === "true";
+            const on = a + 0.08;
+            const running = was ? p > on - 0.015 : p > on;
+            if (was !== running) {
+              state.dataset.running = String(running);
+              state.textContent = running ? "● running" : "idle";
+              state.style.color = running ? "#e4e4e4" : "";
+            }
+          });
+
+          cascade(ticks, p, 0.55, 0.06, 0.12, 10);
+          if (payoff) rise(payoff, ease(clamp01((p - 0.86) / 0.12)), 16);
+        },
+        measure,
+      ),
     );
   }
 
-  // ── "Starts empty. Grows into anything." — four waves, then the line ──
+  // ── "Starts empty. Grows into anything." — the terminal is the protagonist ──
+  //
+  // Inverted from desktop, where the constellation leads and the terminal
+  // accompanies. A developer parses a terminal instantly at 360px wide, and
+  // typing is inherently a narrow-screen kinetic. Characters are a function of
+  // scroll progress, so scrolling back untypes the command — the moment the
+  // page reads as scrubbed rather than triggered.
   if (document.getElementById("grow-field")) {
     const chips = $(".js-chip");
     const cmds = $(".js-cmd");
+    const labels = $(".js-grow-label");
     const counter = document.getElementById("grow-count");
+    const head = document.getElementById("grow-head");
+    const mark = document.getElementById("grow-mark");
+    const term = document.getElementById("grow-term");
     const final = document.getElementById("grow-final");
-    const WAVE = [0.04, 0.2, 0.36, 0.52];
+    const WAVE = [0.06, 0.26, 0.46, 0.64];
+    const SPAN = 0.18;
+    // Captured once: the frame slices these rather than reading the DOM back.
+    const cmdText = cmds.map((el) => el.querySelector("code")?.textContent ?? "");
     let last = -1;
 
     out.push(
       makeBeat("grow", pins, (p) => {
-        let count = 0;
-        chips.forEach((el) => {
-          const w = Number(el.dataset.wave ?? 0);
-          const k = Number(el.dataset.k ?? 0);
-          const t = ease(clamp01((p - (WAVE[w] + k * 0.03)) / 0.12));
-          if (t > 0.6) count++;
-          rise(el, t, 10);
+        // Type the command through the first 60% of its wave, then eject chips.
+        cmds.forEach((el, i) => {
+          const code = el.querySelector("code");
+          const caret = el.querySelector<HTMLElement>(".grow-caret");
+          const w = clamp01((p - WAVE[i]) / (SPAN * 0.6));
+          const started = p >= WAVE[i] - 0.01;
+          el.style.opacity = started ? (p > WAVE[i] + SPAN ? "0.45" : "1") : "0";
+          if (code) {
+            const n = Math.round(w * cmdText[i].length);
+            const next = cmdText[i].slice(0, n);
+            if (code.textContent !== next) code.textContent = next;
+          }
+          if (caret) caret.style.opacity = started && w < 1 ? "1" : "0";
         });
 
-        cmds.forEach((el, i) => {
-          const t = clamp01((p - (0.02 + i * 0.13)) / 0.06);
-          el.style.opacity = (t * (i === cmds.length - 1 || p < 0.15 + i * 0.13 ? 1 : 0.5)).toFixed(3);
+        let count = 0;
+        chips.forEach((el) => {
+          const wv = Number(el.dataset.wave ?? 0);
+          const k = Number(el.dataset.k ?? 0);
+          // Chips land in the last 40% of their wave, after the command reads.
+          const from = WAVE[wv] + SPAN * 0.6 + k * 0.04;
+          const t = ease(clamp01((p - from) / 0.1));
+          if (t > 0.6) count++;
+          // Contract back toward the list as the beat folds.
+          const fold = ease(clamp01((p - 0.84) / 0.08));
+          el.style.opacity = (t * (1 - fold)).toFixed(3);
+          el.style.transform =
+            t >= 0.999 && fold <= 0
+              ? ""
+              : `translateY(${((1 - t) * 10 + fold * 10).toFixed(1)}px) scale(${(0.85 + 0.15 * t).toFixed(3)})`;
+        });
+
+        // Half this beat's copywriting lives in the wave labels; mobile used to
+        // drop them entirely.
+        labels.forEach((el, i) => {
+          const inO = clamp01((p - (WAVE[i] - 0.03)) / 0.05);
+          const outO = i === labels.length - 1 ? 0 : clamp01((p - (WAVE[i + 1] - 0.05)) / 0.05);
+          el.style.opacity = (inO * (1 - outO)).toFixed(3);
         });
 
         if (counter && count !== last) {
           last = count;
           counter.textContent = `Plugins installed · ${count}`;
         }
-        if (final) rise(final, ease(clamp01((p - 0.74) / 0.18)), 16);
+
+        // The fold is the emotional payoff of the page; the list is not an ending.
+        const chrome = 1 - clamp01((p - 0.84) / 0.08);
+        if (term) term.style.opacity = chrome.toFixed(3);
+        if (head) head.style.opacity = chrome.toFixed(3);
+        if (mark) {
+          const mo = ease(clamp01((p - 0.88) / 0.08));
+          mark.style.opacity = mo.toFixed(3);
+          mark.style.transform = `translate(-50%, -50%) scale(${(0.6 + 0.4 * mo).toFixed(3)})`;
+        }
+        if (final) rise(final, ease(clamp01((p - 0.91) / 0.07)), 10);
       }),
     );
   }
@@ -660,8 +790,31 @@ function compactBeats(pins: HTMLElement[]): Beat[] {
     const nouns = $(".js-noun", stack);
     out.push(
       makeBeat("kernel", pins, (p) => {
-        cascade(layers, p, 0.04, 0.09, 0.2, 18);
-        cascade(nouns, p, 0.5, 0.022, 0.1, 6);
+        layers.forEach((el, i) => {
+          const t = ease(clamp01((p - (0.04 + i * 0.09)) / 0.2));
+          el.style.opacity = t.toFixed(3);
+          // A whisper of the desktop's alternation — enough DNA to rhyme, not
+          // enough to look misaligned at full width.
+          const x = (1 - t) * (i % 2 ? 10 : -10);
+          el.style.transform = t >= 0.999 ? "" : `translate(${x.toFixed(1)}px, ${((1 - t) * 18).toFixed(1)}px)`;
+
+          // The drain IS this beat: the UI fill recedes to bedrock and only the
+          // hairline is left. Compact mode never had it.
+          const solid = 1 - ease(clamp01((p - 0.46) / 0.18));
+          const isKernel = el.classList.contains("layer--kernel");
+          el.style.background = isKernel
+            ? `rgba(255,255,255,${(0.014 + 0.02 * (1 - solid)).toFixed(3)})`
+            : `rgba(19,19,19,${solid.toFixed(3)})`;
+          const label = el.querySelector<HTMLElement>(".layer-name");
+          if (label && !isKernel) label.style.opacity = (0.4 + 0.6 * solid).toFixed(2);
+        });
+
+        // Ten singles at 2.4% spacing reads as noise on a phone; pairs read as
+        // a boot sequence.
+        nouns.forEach((el, i) => {
+          const pair = Math.floor(i / 2);
+          rise(el, ease(clamp01((p - (0.64 + pair * 0.07)) / 0.1)), 8);
+        });
       }),
     );
   }

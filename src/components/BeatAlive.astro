@@ -179,13 +179,28 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
       align-items: center;
       gap: 14px;
     }
-    .diagram-svg,
+    /* The six desktop curves are gone, but one vertical spine remains — it is
+       what makes this beat a route rather than a list. `.diagram` is
+       `display: contents` here, so the field is the positioned ancestor and
+       `inset: 0` covers the whole stack. */
     .core-label {
       display: none;
     }
+    .diagram-svg {
+      z-index: 0;
+    }
+    .node,
+    .core,
+    .ticker,
+    .payoff {
+      position: relative;
+      z-index: 1;
+    }
     .core {
-      position: static;
+      position: relative;
       transform: none;
+      left: auto;
+      top: auto;
       order: 2;
       height: 44px;
     }
@@ -207,8 +222,10 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
       order: 3;
     }
     .node {
-      position: static;
+      position: relative;
       transform: none;
+      left: auto;
+      top: auto;
     }
     .node-body--engine {
       flex-direction: row;
@@ -216,8 +233,11 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
       gap: 9px;
     }
     .payoff {
-      position: static;
+      position: relative;
       transform: none;
+      left: auto;
+      right: auto;
+      top: auto;
       order: 5;
       align-items: stretch;
       width: 100%;
