@@ -1383,7 +1383,10 @@ html.motion .reveal.in {
    */
   .works { gap: 10px; }
   .works-marks { gap: 12px; }
-  .night { grid-template-columns: repeat(2, 1fr); gap: 11px; }
+  /* `align-items: start` lets the desktop grid stagger — cards hug their
+     content so the middle column can drift 18px low. That drift is dropped
+     here, so hugging just makes two cards in a row different heights. */
+  .night { grid-template-columns: repeat(2, 1fr); gap: 11px; align-items: stretch; }
   .night-card--drop { --rest: 0px; transform: none; }
   .night-card { padding: 13px 14px; gap: 7px; border-radius: 11px; }
   .night-kind { font-size: 9px; letter-spacing: 0.13em; }
