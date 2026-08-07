@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import { site, isLive } from "../config/site";
+import { questions } from "../data/questions";
 
 interface Props {
   title: string;
@@ -37,6 +38,24 @@ const ogAlt = "thalamus — the fully extensible, self-hosted agentic OS";
  * which entity this is and what else on the web is the same thing.
  */
 const repoLive = isLive("github");
+
+/* Anchored per question, so an engine quoting one answer has an address to
+   attribute it to rather than the page as a whole. Built from the same array
+   the accordion renders, so the declared answer and the visible answer cannot
+   drift — a schema that disagrees with the page is worse than no schema. */
+const faqNode = {
+  "@type": "FAQPage",
+  "@id": `${site.url}/#faq`,
+  isPartOf: { "@id": `${site.url}/#website` },
+  about: { "@id": `${site.url}/#software` },
+  mainEntity: questions.map((item) => ({
+    "@type": "Question",
+    "@id": `${site.url}/#${item.id}`,
+    name: item.q,
+    url: `${canonical}#${item.id}`,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -116,6 +135,7 @@ const jsonLd = {
       about: { "@id": `${site.url}/#software` },
       ...(repoLive ? { codeRepository: site.repo } : {}),
     },
+    faqNode,
   ],
 };
 ---

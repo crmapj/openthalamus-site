@@ -70,13 +70,44 @@ try {
   /* handled by the check below */
 }
 check("JSON-LD parses", graph.length > 0);
-check("JSON-LD has 4 entities", graph.length === 4, `got ${graph.length}`);
+// Name the types rather than count them: a bare count fails on any addition
+// without saying which entity went missing, and passes if one is swapped for
+// another.
+const TYPES = ["Organization", "WebSite", "SoftwareApplication", "SoftwareSourceCode", "FAQPage"];
+const present = graph.map((n) => n["@type"]);
+check("JSON-LD carries the expected entities", TYPES.every((t) => present.includes(t)),
+  `missing ${TYPES.filter((t) => !present.includes(t)).join(", ") || "none"} — got ${present.join(", ")}`);
 check("no aggregateRating (no real ratings exist)", !graph.some((n) => n.aggregateRating));
+
+const faqNode = graph.find((n) => n["@type"] === "FAQPage");
+const domIds = [...html.matchAll(/<details[^>]*id="([^"]+)"/g)].map((m) => m[1]);
+check("FAQPage declares every rendered question",
+  faqNode?.mainEntity?.length === domIds.length && domIds.length === 8,
+  `schema ${faqNode?.mainEntity?.length ?? 0} vs dom ${domIds.length}`);
+check("FAQPage ids match the rendered anchors",
+  JSON.stringify(faqNode?.mainEntity?.map((q) => q["@id"].split("#")[1])) === JSON.stringify(domIds));
+check("every FAQ answer text is actually on the page",
+  (faqNode?.mainEntity ?? []).every((q) => html.includes(q.acceptedAnswer.text.slice(0, 60))));
+
+// The <br> in these headings needs surrounding whitespace or machine text
+// extraction concatenates the lines ("many like it.This one is yours").
+const textOf = (re) => {
+  const m = html.match(re);
+  return m ? m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim() : "";
+};
+check("h1 extracts with a word break", textOf(/<h1[^>]*>([\s\S]*?)<\/h1>/).includes("it. This"));
+check("waitlist heading extracts with a word break", textOf(/<h2 class="close-h"[^>]*>([\s\S]*?)<\/h2>/).includes("notified on"));
 check("no SearchAction (retired 2024)", !/SearchAction/.test(ld?.[1] ?? ""));
 check("JSON-LD subcategory repositioned", graph.some((n) => /Agentic operating system/.test(n.applicationSubCategory ?? "")));
 
 const ogRes = await fetch(new URL("/og.png", BASE));
 check("og.png serves 200 image/png", ogRes.ok && ogRes.headers.get("content-type") === "image/png");
+
+const llmsFull = await fetch(new URL("/llms-full.txt", BASE));
+check("llms-full.txt serves as plain text", llmsFull.ok && /text\/plain/.test(llmsFull.headers.get("content-type") ?? ""));
+const llmsFullBody = await llmsFull.text();
+check("llms-full.txt inlines every FAQ answer", (llmsFullBody.match(/^### /gm) ?? []).length === 8);
+check("llms-full.txt is noindex", llmsFull.headers.get("x-robots-tag") === "noindex");
 
 const robots = await (await fetch(new URL("/robots.txt", BASE))).text();
 check("robots.txt permits everything but /api/", /Allow: \/\n/.test(robots) && /Disallow: \/api\//.test(robots));

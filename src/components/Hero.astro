@@ -62,7 +62,10 @@ const night = [
     </p>
 
     <h1 class="rise" style="--delay:240ms">
-      <span class="dim">There will be many like it.</span><br />This one is yours.
+      {/* The space before the <br> is load-bearing: without it, text extraction
+          concatenates the two lines into "many like it.This one is yours."
+          Trailing whitespace before a line break collapses, so nothing moves. */}
+      <span class="dim">There will be many like it.</span> <br />This one is yours.
     </h1>
 
     <p class="lede rise" style="--delay:560ms">

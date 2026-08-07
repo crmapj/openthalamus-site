@@ -22,7 +22,9 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
   <div class="close-inner shell">
     <div class="close-head reveal">
       <p class="eyebrow">Waitlist · v0</p>
-      <h2 class="close-h">Get notified<br />on release.</h2>
+      {/* Space before the <br> — see Hero.astro. Without it this extracts
+           as "Get notifiedon release." */}
+      <h2 class="close-h">Get notified <br />on release.</h2>
       <p class="close-sub">
         One email the day you can install it. No newsletter, no sharing, no other use.
       </p>

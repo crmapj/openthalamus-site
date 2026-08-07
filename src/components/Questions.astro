@@ -1,8 +1,9 @@
 ---
-import { installCommand, site } from "../config/site";
+import { questions } from "../data/questions";
 
 /**
- * Questions, phrased the way people actually type them.
+ * Questions, rendered from `src/data/questions.ts` so the visible answer and
+ * the `FAQPage` answer in the JSON-LD graph come from one array.
  *
  * Native `<details>` rather than a JS accordion, for the reason this codebase
  * learned the hard way: content must never depend on a script to become
@@ -11,53 +12,19 @@ import { installCommand, site } from "../config/site";
  * by Ctrl+F (Chromium auto-expands on find-in-page). It is also focusable and
  * keyboard-operable with no ARIA to maintain.
  *
- * Deliberately NOT marked up as FAQPage — Google retired FAQ rich results for
- * most sites in May 2026, so the schema now buys a validation badge and
- * nothing else. The value here is the plain one: the query appears verbatim as
- * a heading directly above a self-contained answer.
+ * That last property turns out to be the most valuable thing on the page.
+ * Vercel and MERJ measured 500M+ crawl fetches and found no major AI crawler
+ * executes JavaScript — a JS accordion would hide all eight answers from every
+ * one of them.
  *
- * Q2, Q5 and Q8 now carry ALL of the load-bearing honesty. The "honest bit"
- * disclosure that used to sit in the closing section was removed on 2026-08-06,
- * so these three answers are the only place the limits are stated — what it is
- * not, what the plugin host cannot do yet, and what you cannot run today.
- * "Agentic OS" is a big claim for a v0 and it stays credible only because those
- * limits sit beside the ambition. Do not soften them, and do not remove them
- * without putting them somewhere else first.
+ * On FAQPage schema: this was deliberately omitted until 2026-08-07, on the
+ * grounds that Google no longer shows FAQ rich results for sites like ours, so
+ * the markup bought a validation badge and nothing else. That reasoning was
+ * right about Google and wrong about the objective. The audit target is AI
+ * answer engines, which parse JSON-LD to understand structure regardless of
+ * whether a rich result exists. The cost is zero and the reader is no longer
+ * only Google, so the node is now emitted from the same source as this list.
  */
-const qs = [
-  {
-    q: "What is an agentic OS?",
-    a: `What an operating system does for programs, done for agents: it owns the things no single agent can own for itself — memory that survives sessions, permissions that gate actions before they run, jobs that outlive restarts, and a plugin surface for everything else. The engines stay swappable; the OS is the part that persists. thalamus is that layer, self-hosted on your own hardware.`,
-  },
-  {
-    q: "Is thalamus actually an operating system?",
-    a: `It will not replace the operating system on your machine. It is an OS in the structural sense: a ten-noun kernel owns jobs, memory, authority and the action log; drivers make engines and memory backends swappable; everything else is a plugin with declared, default-deny capabilities. The test that matters — extending it means writing a plugin, not a fork. v0 is early; the shape is already this.`,
-  },
-  {
-    q: "What tools orchestrate multiple coding agents?",
-    a: `Others put a task board over one vendor's agent, or host your state for you. thalamus takes the OS position: Claude Code, Codex, opencode and local models are adapters behind a driver port, jobs are durable and survive restarts, and switching engines leaves your memory, history and trust rules exactly where they were. On your box.`,
-  },
-  {
-    q: "How do I share memory between Claude Code and Codex?",
-    a: `Put the memory outside both of them. Each harness keeps its own session state and forgets across restarts, so anything that must survive belongs in a store neither vendor owns. In thalamus, memory is an OS service behind a driver port: every engine reads and writes the same brain, and swapping engines never resets it.`,
-  },
-  {
-    q: "Can I build my own thalamus plugins?",
-    a: `That's the whole design. Every capability above the kernel is a plugin — surfaces, sources, skills, harnesses — with a manifest, declared capabilities and default-deny permissions. Official ones install with one command; yours can start as a folder a coding agent wrote for you. The current limit: the v0 host runs a bounded reference adapter, and third-party code stays quarantined until the sandbox boundary is real.`,
-  },
-  {
-    q: "Is thalamus self-hosted, and is there a cloud version?",
-    a: `Self-hosted only. No account, no tenancy, no hosted service to sign up for — you run it on your own hardware or you don't run it. That is the position, not a roadmap gap: an OS you don't own is someone else's computer with your memory in it.`,
-  },
-  {
-    q: "How much does thalamus cost?",
-    a: `Nothing. Free, ${site.license} licensed, self-hosted — the only bills are your own compute and your own model tokens. That follows from the bet: code generation is a commodity, so the OS meters it like one. Spend caps live in the trust gate, and an overnight run has a ceiling you set.`,
-  },
-  {
-    q: "When can I install thalamus?",
-    a: `Soon — v0 is close. Today the repository is still private and \`${installCommand}\` is not live yet, so the waitlist below is the real answer: one email the day it runs, and nothing before it. Between now and then, interfaces, contracts and storage layouts can still move.`,
-  },
-];
 ---
 
 <section class="questions" aria-labelledby="q-h">
@@ -65,13 +32,13 @@ const qs = [
     <header class="q-head">
       <p class="eyebrow">FAQ</p>
       <h2 id="q-h">Questions.</h2>
-      <p class="q-count" aria-hidden="true">{String(qs.length).padStart(2, "0")} questions</p>
+      <p class="q-count" aria-hidden="true">{String(questions.length).padStart(2, "0")} questions</p>
     </header>
 
     <div class="q-list">
       {
-        qs.map((item, i) => (
-          <details class="q-item" open={i === 0}>
+        questions.map((item, i) => (
+          <details class="q-item" id={item.id} open={i === 0}>
             <summary>
               <span class="q-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
               <h3 class="q-q">{item.q}</h3>
