@@ -1,44 +1,74 @@
 ---
 /**
- * A third-party brand mark, monochrome, sized to sit beside text.
+ * A third-party brand mark, sized to sit beside text.
  *
  * Always decorative: every mark appears next to its own name in the adjacent
  * text, so announcing it again would just be a duplicate for a screen reader.
  * An unknown slug renders nothing rather than a broken box — the chips it sits
- * in must survive a mark being unavailable, which several deliberately are.
+ * in must survive a mark being unavailable.
+ *
+ * `tone="color"` uses the real logo colours where the brand has them. Brands
+ * whose logo is monochrome by design fall back to the mono variant and inherit
+ * the surrounding text colour, which on this page is white — the form each of
+ * those companies specifies for a dark background.
  */
 import { brandMarks } from "../data/brand-marks";
 
 interface Props {
   name: keyof typeof brandMarks | string;
   size?: number;
+  tone?: "mono" | "color";
   class?: string;
 }
-const { name, size = 12, class: className } = Astro.props;
+const { name, size = 12, tone = "mono", class: className } = Astro.props;
 const mark = brandMarks[name];
+const variant = mark ? (tone === "color" && mark.color ? mark.color : mark.mono) : null;
+// A brand with no colour form still counts as "coloured" — its colour is white.
+const isTrueColor = tone === "color" && Boolean(mark?.color);
 ---
 
 {
-  mark && (
+  mark && variant && (
     <svg
-      class:list={["brand-mark", className]}
+      class:list={[
+        "brand-mark",
+        isTrueColor && "brand-mark--color",
+        mark.stroke && "brand-mark--stroke",
+        className,
+      ]}
       width={size}
       height={size}
-      viewBox="0 0 24 24"
-      fill="currentColor"
+      viewBox={variant.viewBox}
       aria-hidden="true"
       focusable="false"
-    >
-      <path d={mark.path} />
-    </svg>
+      set:html={variant.body}
+    />
   )
 }
 
 <style>
   .brand-mark {
     flex-shrink: 0;
+    fill: currentColor;
     /* Dimmer than the label it sits beside: the name is the content, the mark
        is recognition. */
     opacity: 0.62;
+  }
+
+  /* A real logo carries its own colour and needs no help reading — dimming it
+     would just muddy the brand. Every path in a colour body sets its own fill;
+     `currentColor` stays the default underneath so a path that does not still
+     renders as light rather than disappearing. */
+  .brand-mark--color {
+    opacity: 1;
+  }
+
+  /* Attio's mark is drawn as an outline, not a solid. Its native 1.2 in an
+     18-unit box lands under a pixel at this size, so it is thickened to hold
+     up next to the solid marks beside it. */
+  .brand-mark--stroke {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
   }
 </style>

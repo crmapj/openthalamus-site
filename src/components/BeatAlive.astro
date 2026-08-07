@@ -1,4 +1,5 @@
 ---
+import BrandMark from "./BrandMark.astro";
 import Mark from "./Mark.astro";
 
 /**
@@ -34,9 +35,9 @@ const sources = [
  * first frame, so the motion path is unaffected.
  */
 const engines = [
-  { label: "Codex", x: 90, y: 18, mx: 18, my: 94, resting: "● running" },
-  { label: "Claude", x: 90, y: 50, mx: 50, my: 94, resting: "● running" },
-  { label: "Cursor", x: 90, y: 82, mx: 82, my: 94, resting: "idle" },
+  { label: "Codex", x: 90, y: 18, mx: 18, my: 94, resting: "● running", mark: "openai" },
+  { label: "Claude", x: 90, y: 50, mx: 50, my: 94, resting: "● running", mark: "claude" },
+  { label: "Cursor", x: 90, y: 82, mx: 82, my: 94, resting: "idle", mark: "cursor" },
 ];
 
 const queued = [
@@ -103,7 +104,10 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
               engines.map((e) => (
                 <div class="node js-engine" style={`--x:${e.x};--y:${e.y};--mx:${e.mx};--my:${e.my}`}>
                   <div class="node-body node-body--engine">
-                    <span class="engine-name">{e.label}</span>
+                    <span class="engine-name">
+                      {e.mark && <BrandMark name={e.mark} tone="color" />}
+                      {e.label}
+                    </span>
                     <span class="engine-state">{e.resting}</span>
                   </div>
                 </div>
