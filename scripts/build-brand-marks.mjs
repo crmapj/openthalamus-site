@@ -51,6 +51,9 @@ const MARKS = {
   cursor: { mono: "siCursor" },
   opencode: { mono: "siOpencode" },
   ollama: { mono: "siOllama" },
+  gemini: { mono: "siGooglegemini", color: "google-gemini" },
+  copilot: { mono: "siGithubcopilot" },
+  cline: { mono: "siCline" },
 };
 
 /**

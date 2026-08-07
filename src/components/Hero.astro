@@ -13,20 +13,25 @@ import BrandMark from "./BrandMark.astro";
 /*
  * The harnesses thalamus drives, as recognition rather than a claim.
  *
- * Exactly the set the rest of the page claims — Claude Code, Codex, opencode,
- * local models, plus Cursor from the relay beat. Nothing aspirational: an
- * engine listed here has to be one we say we support elsewhere.
- *
- * Codex carries no glyph on purpose. OpenAI asked to be removed from Simple
- * Icons, so redrawing their mark is the one thing not to do — it is named in
- * text instead, which is also the strongest name in the row.
+ * Ordered by how much the name earns on sight, because the first MOBILE_VISIBLE
+ * of them are the only ones a phone shows — the rest collapse into a count.
+ * Desktop has the room for all of them, so it shows all of them.
  */
 const harnesses = [
   { mark: "claude", name: "Claude Code" },
+  { mark: "openai", name: "Codex" },
   { mark: "cursor", name: "Cursor" },
   { mark: "opencode", name: "opencode" },
+  { mark: "gemini", name: "Gemini CLI" },
+  { mark: "copilot", name: "GitHub Copilot" },
+  { mark: "cline", name: "Cline" },
   { mark: "ollama", name: "local models via Ollama" },
 ];
+
+/* Kept in step with the CSS that hides the overflow marks below 860px. The
+   count is derived rather than written down so it cannot drift from the list. */
+const MOBILE_VISIBLE = 3;
+const hiddenOnMobile = harnesses.length - MOBILE_VISIBLE;
 
 const night = [
   {
@@ -74,11 +79,11 @@ const night = [
       <span class="works-marks">
         {harnesses.map((h) => <BrandMark name={h.mark} size={15} />)}
       </span>
-      {/* The marks are decorative, so the names they stand for live here — read
-          in place, between "Works with" and the visible "+ Codex", so the whole
-          row is one sentence to a screen reader. */}
+      {/* The marks are decorative, and a phone only shows three of them, so the
+          full list lives here — read in place, so the row is one sentence to a
+          screen reader and complete at every width. */}
       <span class="sr-only">{harnesses.map((h) => h.name).join(", ")}</span>
-      <span class="works-more">+ Codex</span>
+      <span class="works-more" aria-hidden="true">+{hiddenOnMobile} more</span>
     </p>
   </div>
 

@@ -381,6 +381,8 @@ h1 .dim { color: var(--text-faint); }
   text-transform: none;
   letter-spacing: 0.06em;
   font-size: 11px;
+  /* Desktop shows every mark, so there is nothing left to count. */
+  display: none;
 }
 
 /* ── LAST NIGHT card grid ── */
@@ -1381,8 +1383,13 @@ html.motion .reveal.in {
    * re-applies the offset after any static rule. The offset has to be zeroed at
    * its source.
    */
+  /* A phone has room for three marks, not eight. The rest become a count —
+     the number is derived in Hero.astro from the same list, so this rule and
+     that label cannot disagree. Keep `nth-child` in step with MOBILE_VISIBLE. */
   .works { gap: 10px; }
   .works-marks { gap: 12px; }
+  .works-marks .brand-mark:nth-child(n + 4) { display: none; }
+  .works-more { display: inline; }
   /* `align-items: start` lets the desktop grid stagger — cards hug their
      content so the middle column can drift 18px low. That drift is dropped
      here, so hugging just makes two cards in a row different heights. */
