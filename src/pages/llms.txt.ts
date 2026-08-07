@@ -103,7 +103,7 @@ community plugins stay quarantined until that boundary is real.
 - [Something is always on](${site.url}/#alive): how signals route through the relay to whichever engine is free.
 - [Starts empty, grows into anything](${site.url}/#plugins): the plugin model.
 - [Under everything, a kernel](${site.url}/#architecture): the layer stack and the ten kernel nouns.
-- [Questions](${site.url}/#what): the full FAQ.
+- [What thalamus is](${site.url}/#what): the one-sentence definition.\n- [The dissection](${site.url}/#anatomy): which part of a brain thalamus actually is.\n- [Questions](${site.url}/#faq): the full FAQ.
 ${questions.map((item) => `  - [${item.q}](${site.url}/#${item.id})`).join("\n")}
 
 ## Optional

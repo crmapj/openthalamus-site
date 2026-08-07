@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import Nav from "../components/Nav.astro";
 import Hero from "../components/Hero.astro";
 import Definition from "../components/Definition.astro";
+import Anatomy from "../components/Anatomy.astro";
 import BeatAlive from "../components/BeatAlive.astro";
 import BeatGrow from "../components/BeatGrow.astro";
 import BeatKernel from "../components/BeatKernel.astro";
@@ -20,6 +21,7 @@ const title = "thalamus — the fully extensible, self-hosted agentic OS";
   <main id="beats">
     <Hero />
     <Definition />
+    <Anatomy />
     <BeatAlive />
     <BeatGrow />
     <BeatKernel />
@@ -32,6 +34,7 @@ const title = "thalamus — the fully extensible, self-hosted agentic OS";
 
 <script>
   import { initBeats } from "../scripts/beats";
+  import { initAnatomy } from "../scripts/anatomy";
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -44,6 +47,16 @@ const title = "thalamus — the fully extensible, self-hosted agentic OS";
     // A broken animation must never cost the visitor the content. The CSS
     // resting state is the fully composed page, so swallowing this is safe.
     console.error("beats engine failed; static composition retained", err);
+  }
+
+  /* ── The dissection ──────────────────────────────────────────────────────
+     Its own engine because it drives a canvas rather than DOM transforms, but
+     the same contract: the plate is fully readable before this runs, and only
+     this call can hide anything. */
+  try {
+    initAnatomy();
+  } catch (err) {
+    console.error("anatomy engine failed; static plate retained", err);
   }
 
   /* ── Reveal-on-scroll for the beat copy ──────────────────────────────────

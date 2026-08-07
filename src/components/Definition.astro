@@ -1,31 +1,27 @@
 ---
-import { site } from "../config/site";
-
 /**
- * The direct answer, high on the page, in plain declarative sentences.
+ * The direct answer, high on the page, in one sentence.
  *
- * Two jobs. First, entity resolution: "thalamus" is a brain structure with an
- * enormous prior, so the page has to say early and unambiguously which thalamus
- * this is. Second, survive being quoted — answer engines truncate from the
- * front, so the first clause is a complete correct answer on its own and
- * everything after the colon is bonus.
+ * Two jobs, both of which survive being cut to the bone. First, entity
+ * resolution: "thalamus" is a brain structure with an enormous prior, so the
+ * page has to say early and unambiguously which thalamus this is. Second,
+ * survive being quoted — answer engines truncate from the front, so the first
+ * clause is a complete correct answer on its own.
  *
- * The claim is made in the indicative and the maturity is stated separately, in
- * its own row and its own section. Blending the two is what hedging *is*;
- * keeping them apart is how you make a big claim honestly.
+ * This used to carry a second paragraph, a note on the name, and a ten-row
+ * spec table. All three are gone as of 2026-08-07:
+ *
+ *   · the note on the name is now the entire premise of the dissection that
+ *     follows this section — it opens on "The name is literal.", so saying it
+ *     here first spent the line before the animation could use it;
+ *   · every spec row now has a question attached to it in the FAQ, which is a
+ *     better home: a table of assertions is not citable, a question with an
+ *     answer is. `Runs on` and `Clients` had no FAQ entry and got one.
+ *
+ * Resist re-adding detail here. Everything after this sentence is the
+ * animation's job, and the reason this section works is that it gets out of
+ * the way.
  */
-const specs = [
-  { k: "What it is", v: "A fully extensible, self-hosted agentic OS" },
-  { k: "The bet", v: site.bet },
-  { k: "Kernel", v: "Ten dedicated nouns" },
-  { k: "Extends", v: "Everything above the kernel is a plugin — surfaces, sources, skills, harnesses, or your own" },
-  { k: "Engines", v: "Claude Code, Codex, opencode, local models — swappable adapters" },
-  { k: "Clients", v: "Web, desktop, iOS, CLI over one server contract" },
-  { k: "Runs on", v: "Linux and macOS · Node.js / TypeScript" },
-  { k: "Hosting", v: "Self-hosted only. No account, no tenancy, no hosted service" },
-  { k: "Price", v: `Free — you pay only for your own compute and model tokens · ${site.license}`, href: site.licenseUrl },
-  { k: "Status", v: "Pre-release (v0) — shipping soon" },
-];
 ---
 
 <section class="define" id="what" aria-labelledby="what-h">
@@ -36,39 +32,7 @@ const specs = [
         code is becoming cheap, coding agents are interchangeable, and the way you want
         to work is the thing worth owning.
       </strong>
-      It does for agents what an OS does for programs — owns the memory, schedules the
-      jobs, enforces the permissions, keeps the log — and everything above the kernel is
-      a plugin you can install, replace, or write in an afternoon.
     </h2>
-
-    <p class="define-note">
-      The name is literal. The thalamus is the brain's relay — nearly everything on its
-      way to the cortex passes through it, and it is not the cortex. Same shape here:
-      the intelligence is whichever engines you plug in. thalamus is the part that
-      routes, gates and remembers. A kernel, not a cortex.
-    </p>
-
-    <dl class="specs">
-      {
-        specs.map((s) => (
-          <div class="spec">
-            <dt>{s.k}</dt>
-            <dd>
-              {s.href ? (
-                <>
-                  {s.v.replace(` · ${site.license}`, "")} ·{" "}
-                  <a href={s.href} rel="license noopener" target="_blank">
-                    {site.license}
-                  </a>
-                </>
-              ) : (
-                s.v
-              )}
-            </dd>
-          </div>
-        ))
-      }
-    </dl>
   </div>
 </section>
 
@@ -78,81 +42,34 @@ const specs = [
     border-top: 1px solid var(--border-faint);
   }
   .define-inner {
-    padding-block: 84px 90px;
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
+    padding-block: 84px 84px;
   }
 
   /* A heading in the document outline, set as a lede — the sentence is the
      content, and it should read as a statement, not a section title. */
   .define-h {
     margin: 0;
-    font-size: clamp(19px, 2.2vw, 25px);
-    line-height: 1.5;
+    font-size: clamp(21px, 2.5vw, 30px);
+    line-height: 1.45;
     font-weight: 400;
-    letter-spacing: -0.012em;
-    color: var(--text-tertiary);
-    max-width: 68ch;
+    letter-spacing: -0.014em;
+    color: var(--text-primary);
+    /* Wide enough that the one sentence reads as a statement across three or
+       four lines, rather than a narrow column beside half a screen of black. */
+    max-width: 44ch;
     text-wrap: pretty;
   }
   .define-h strong {
-    color: var(--text-primary);
     font-weight: 550;
-  }
-
-  .define-note {
-    margin: 0;
-    font-size: 15.5px;
-    line-height: 1.6;
-    color: var(--text-faint);
-    max-width: 62ch;
-    text-wrap: pretty;
-  }
-
-  .specs {
-    margin: 14px 0 0;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 40px;
-    border-top: 1px solid var(--border-faint);
-  }
-  .spec {
-    display: grid;
-    grid-template-columns: 92px 1fr;
-    gap: 16px;
-    align-items: baseline;
-    padding: 13px 0;
-    border-bottom: 1px solid var(--border-faint);
-  }
-  .spec dt {
-    font-family: var(--font-mono);
-    font-size: 9.5px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-  }
-  .spec dd {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--text-secondary);
-  }
-  .spec dd a {
-    border-bottom-color: var(--border-subtle);
   }
 
   @media (max-width: 860px) {
     .define-inner {
-      padding-block: 56px 62px;
+      padding-block: 60px 60px;
     }
-    .specs {
-      grid-template-columns: 1fr;
-      gap: 0;
-    }
-    .spec {
-      grid-template-columns: 88px 1fr;
-      gap: 12px;
+    .define-h {
+      max-width: none;
+      line-height: 1.42;
     }
   }
 </style>

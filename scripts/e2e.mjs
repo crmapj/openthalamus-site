@@ -82,7 +82,7 @@ check("no aggregateRating (no real ratings exist)", !graph.some((n) => n.aggrega
 const faqNode = graph.find((n) => n["@type"] === "FAQPage");
 const domIds = [...html.matchAll(/<details[^>]*id="([^"]+)"/g)].map((m) => m[1]);
 check("FAQPage declares every rendered question",
-  faqNode?.mainEntity?.length === domIds.length && domIds.length === 8,
+  domIds.length > 0 && faqNode?.mainEntity?.length === domIds.length,
   `schema ${faqNode?.mainEntity?.length ?? 0} vs dom ${domIds.length}`);
 check("FAQPage ids match the rendered anchors",
   JSON.stringify(faqNode?.mainEntity?.map((q) => q["@id"].split("#")[1])) === JSON.stringify(domIds));
@@ -106,7 +106,9 @@ check("og.png serves 200 image/png", ogRes.ok && ogRes.headers.get("content-type
 const llmsFull = await fetch(new URL("/llms-full.txt", BASE));
 check("llms-full.txt serves as plain text", llmsFull.ok && /text\/plain/.test(llmsFull.headers.get("content-type") ?? ""));
 const llmsFullBody = await llmsFull.text();
-check("llms-full.txt inlines every FAQ answer", (llmsFullBody.match(/^### /gm) ?? []).length === 8);
+check("llms-full.txt inlines every FAQ answer",
+  (llmsFullBody.match(/^### /gm) ?? []).length === domIds.length,
+  `${(llmsFullBody.match(/^### /gm) ?? []).length} headings vs ${domIds.length} questions`);
 check("llms-full.txt is noindex", llmsFull.headers.get("x-robots-tag") === "noindex");
 
 const robots = await (await fetch(new URL("/robots.txt", BASE))).text();
@@ -225,11 +227,13 @@ const faq = await evalJs(`
     answersInDom: items.every(d => (d.querySelector(".q-a p")?.textContent || "").length > 40),
     numbered: [...document.querySelectorAll(".q-num")].map(n => n.textContent),
   };`);
-check("FAQ renders 8 items", faq.count === 8, `got ${faq.count}`);
+check("FAQ renders every question in the data file", faq.count === domIds.length, `got ${faq.count}`);
 check("FAQ first item open, rest closed", faq.firstOpen && faq.othersClosed);
 // `every` on an empty list is vacuously true, so this has to be gated on count.
-check("FAQ answers are in the DOM even when collapsed", faq.count === 8 && faq.answersInDom);
-check("FAQ rows are indexed 01..08", faq.numbered.join(",") === "01,02,03,04,05,06,07,08");
+check("FAQ answers are in the DOM even when collapsed", faq.count > 0 && faq.answersInDom);
+check("FAQ rows are numbered in sequence from 01",
+  faq.numbered.join(",") === Array.from({ length: faq.count }, (_, i) => String(i + 1).padStart(2, "0")).join(","),
+  faq.numbered.join(","));
 
 // Click a closed row and confirm it opens — the "dynamic click-out".
 const toggled = await evalJs(`

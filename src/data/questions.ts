@@ -60,6 +60,11 @@ export const questions: Question[] = [
     a: `Self-hosted only. No account, no tenancy, no hosted service to sign up for — you run it on your own hardware or you don't run it. That is the position, not a roadmap gap: an OS you don't own is someone else's computer with your memory in it.`,
   },
   {
+    id: "what-do-i-need-to-run-it",
+    q: "What do I need to run thalamus?",
+    a: `A machine you control running Linux or macOS, and Node.js — thalamus is TypeScript. It installs as one server that owns the state, the jobs and the permissions; the web app, the desktop app, the iOS app and the CLI are all clients of that one server contract, so what you see is the same on every surface. No account and no tenancy: the server is yours.`,
+  },
+  {
     id: "how-much-does-it-cost",
     q: "How much does thalamus cost?",
     a: `Nothing. $0, ${site.license} licensed, self-hosted — the only bills are your own compute and your own model tokens. That follows from the bet: code generation is a commodity, so the OS meters it like one. Spend caps live in the trust gate, and an overnight run has a ceiling you set.`,
