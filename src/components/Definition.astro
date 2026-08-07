@@ -18,10 +18,21 @@
  *     better home: a table of assertions is not citable, a question with an
  *     answer is. `Runs on` and `Clients` had no FAQ entry and got one.
  *
- * Resist re-adding detail here. Everything after this sentence is the
- * animation's job, and the reason this section works is that it gets out of
- * the way.
+ * What came back on 2026-08-07, deliberately small: the clause saying what it
+ * actually does, and a four-item strip of the facts most often asked for.
+ * At one sentence the section read as an accident rather than a decision.
+ * The strip is the ceiling — anything more belongs in the FAQ, which is where
+ * the rest of the table went and where a fact is attached to a question
+ * somebody actually types.
  */
+import { site } from "../config/site";
+
+const facts = [
+  { k: "Licence", v: `${site.license}, free` },
+  { k: "Hosting", v: "Self-hosted only" },
+  { k: "Kernel", v: "Ten nouns" },
+  { k: "Status", v: "Pre-release · v0" },
+];
 ---
 
 <section class="define" id="what" aria-labelledby="what-h">
@@ -33,6 +44,22 @@
         to work is the thing worth owning.
       </strong>
     </h2>
+
+    <p class="define-sub">
+      It does for agents what an OS does for programs — owns the memory, schedules the
+      jobs, enforces the permissions, keeps the log.
+    </p>
+
+    <dl class="define-facts">
+      {
+        facts.map((f) => (
+          <div class="define-fact">
+            <dt>{f.k}</dt>
+            <dd>{f.v}</dd>
+          </div>
+        ))
+      }
+    </dl>
   </div>
 </section>
 
@@ -43,6 +70,9 @@
   }
   .define-inner {
     padding-block: 84px 84px;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
   }
 
   /* A heading in the document outline, set as a lede — the sentence is the
@@ -63,6 +93,42 @@
     font-weight: 550;
   }
 
+  .define-sub {
+    margin: 0;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.6;
+    color: var(--text-tertiary);
+    max-width: 56ch;
+    text-wrap: pretty;
+  }
+
+  /* Four facts, one row, hairline-separated. Deliberately not the ten-row
+     table this replaced: enough to stop the section reading as empty, not
+     enough to become the content again. */
+  .define-facts {
+    margin: 10px 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    border-top: 1px solid var(--border-faint);
+  }
+  .define-fact {
+    padding: 16px 20px 0 0;
+  }
+  .define-fact dt {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .define-fact dd {
+    margin: 7px 0 0;
+    font-size: 14.5px;
+    line-height: 1.4;
+    color: var(--text-secondary);
+  }
+
   @media (max-width: 860px) {
     .define-inner {
       padding-block: 60px 60px;
@@ -70,6 +136,12 @@
     .define-h {
       max-width: none;
       line-height: 1.42;
+    }
+    .define-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .define-fact {
+      padding: 14px 16px 0 0;
     }
   }
 </style>

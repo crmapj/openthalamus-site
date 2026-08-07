@@ -1,5 +1,6 @@
 ---
 import Mark from "./Mark.astro";
+import BrandMark from "./BrandMark.astro";
 
 /**
  * The dissection — FIG. 1.
@@ -42,7 +43,7 @@ const plates = [
     num: "III",
     part: "The thalamus",
     h: "What's left is the part worth owning.",
-    p: "Nearly everything on its way to the cortex passes through this small grey structure. It routes, it gates, it remembers what mattered. Not the smartest part — the part every other part depends on.",
+    p: "Nearly everything on its way to the cortex passes through here first. It routes, it gates, it remembers what mattered. Not the smartest part of a brain — the part the smart parts cannot work without.",
     in: "0.445,0.48",
     out: "0.60,0.635",
   },
@@ -58,7 +59,7 @@ const plates = [
     num: "V",
     part: "The hands",
     h: "The hands are hired.",
-    p: "Claude Code, Codex, opencode, a local model — good hands, anyone's hands, swappable at the wrist. The nervous system stays yours.",
+    p: "Good hands, anyone's hands, swappable at the wrist. Every harness is an adapter behind one driver port, so switching leaves your memory, your history and your trust rules exactly where they were. The nervous system stays yours.",
     in: "0.795,0.83",
     out: "0.925,0.95",
   },
@@ -72,7 +73,14 @@ const nouns = [
 ];
 
 const callouts = ["Cortex", "Cerebellum", "Thalamus", "Brainstem"];
-const hands = ["Claude Code", "Codex", "opencode", "Local model"];
+/* The four the plate can fit. Marks are the same source as the relay beat and
+   the plugin chips, so a harness looks the same everywhere on the page. */
+const hands = [
+  { name: "Claude Code", mark: "claude" },
+  { name: "Codex", mark: "openai" },
+  { name: "opencode", mark: "opencode" },
+  { name: "Local model", mark: "ollama" },
+];
 const rail = ["Plate", "Cortex", "Cerebellum", "Thalamus", "Brainstem", "Hands"];
 ---
 
@@ -98,7 +106,10 @@ const rail = ["Plate", "Cortex", "Cerebellum", "Thalamus", "Brainstem", "Hands"]
           hands.map((h) => (
             <div class="an-hand">
               <div class="an-hand-card">
-                <span class="an-hand-name">{h}</span>
+                <span class="an-hand-name">
+                  <BrandMark name={h.mark} tone="color" size={13} />
+                  {h.name}
+                </span>
                 <span class="an-hand-state">waiting</span>
               </div>
             </div>
@@ -341,6 +352,9 @@ const rail = ["Plate", "Cortex", "Cerebellum", "Thalamus", "Brainstem", "Hands"]
     border-color: rgba(255, 255, 255, 0.34);
   }
   .an-hand-name {
+    display: flex;
+    align-items: center;
+    gap: 7px;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.12em;
