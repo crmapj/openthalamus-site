@@ -78,6 +78,10 @@ for (const browserName of requested) {
         reducedMotion: scenario.reduced ? "reduce" : "no-preference",
       });
       try {
+        // This suite owns the site's motion contract, not Cloudflare's
+        // cross-origin challenge frame. Blocking it also makes the run
+        // deterministic when a deep scroll brings the waitlist near view.
+        await context.route("https://challenges.cloudflare.com/**", (route) => route.abort());
         if (scenario.override) {
           await context.addInitScript(
             (value) => {
