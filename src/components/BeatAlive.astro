@@ -243,12 +243,15 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
     .tick-what { font-size: 11.5px; }
     .tick-who { font-size: 9.5px; }
 
-    /* No-JS and reduced motion still need a box to lay the constellation in. */
+    /* No-JS and reduced motion hold on the complete constellation, then place
+       its result directly beneath it. Keeping the result in the diagram's
+       centre put the top routing nodes underneath the 2×2 result card. */
     :global(.pin:not(.pin--motion)) .diagram {
       min-height: 460px;
+      margin-bottom: 150px;
     }
     :global(.pin:not(.pin--motion)) .payoff {
-      position: static;
+      top: 100%;
       transform: none;
       margin-top: 20px;
     }
