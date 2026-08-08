@@ -25,6 +25,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** Viewport, reduced-motion flag, and the scroll fractions to capture. */
 const RUNS = [
   { name: "desktop", w: 1440, h: 900, reduced: false, at: [0, 0.1, 0.2, 0.3, 0.38, 0.46, 0.56, 0.66, 0.78, 0.88, 0.95, 1] },
+  { name: "windows-short", w: 1366, h: 490, reduced: false, at: [0.22, 0.48, 0.67, 0.81] },
+  { name: "phone-landscape", w: 844, h: 390, reduced: false, at: [0.22, 0.47, 0.645, 0.782] },
+  { name: "large", w: 2560, h: 1440, reduced: false, at: [0.22, 0.56, 0.757, 0.907] },
   { name: "static", w: 1440, h: 900, reduced: true, at: [0, 0.16, 0.33, 0.5, 0.66, 0.83, 1] },
   { name: "mobile", w: 390, h: 844, reduced: false, at: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1] },
 ];
@@ -115,6 +118,10 @@ async function run({ name, w, h, reduced, at }) {
 }
 
 await mkdir(OUT, { recursive: true });
-for (const r of RUNS) await run(r);
+const selectedRuns = process.env.QA_RUN
+  ? RUNS.filter((run) => run.name.includes(process.env.QA_RUN))
+  : RUNS;
+if (!selectedRuns.length) throw new Error(`No screenshot run matched ${process.env.QA_RUN}`);
+for (const r of selectedRuns) await run(r);
 await rm(PROFILE, { recursive: true, force: true, maxRetries: 3 }).catch(() => {});
 console.log(`\nwrote to ${OUT}`);

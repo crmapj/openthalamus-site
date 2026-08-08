@@ -137,7 +137,7 @@ const rail = ["Plate", "Cortex", "Cerebellum", "Thalamus", "Brainstem", "Hands"]
       </div>
 
       <div class="an-payoff">
-        <Mark size={46} />
+        <Mark class="an-payoff-mark" />
         <p class="an-payoff-h">A kernel, not a cortex.</p>
         <p class="an-payoff-sub">
           The part that routes, gates and remembers · on hardware you own
@@ -519,6 +519,21 @@ const rail = ["Plate", "Cortex", "Cerebellum", "Thalamus", "Brainstem", "Hands"]
     }
     :global(html.anatomy-motion) .an-rail {
       display: none;
+    }
+  }
+
+  @media (max-width: 860px) and (max-height: 500px) {
+    /* The sticky mobile nav occupies the top of a landscape viewport. Centre
+       the closing statement in the space below it rather than behind it. */
+    :global(html.anatomy-motion) .an-payoff {
+      padding: 58px 20px 0;
+      gap: 10px;
+    }
+    :global(.an-payoff-mark) { display: none; }
+    .an-payoff-h { font-size: 30px; }
+    .an-payoff-sub {
+      font-size: 8px;
+      line-height: 1.5;
     }
   }
 </style>

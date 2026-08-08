@@ -96,8 +96,9 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  html:not([data-motion="full"]) { scroll-behavior: auto; }
 }
+html[data-motion="reduced"] { scroll-behavior: auto; }
 
 body {
   margin: 0;
@@ -1561,20 +1562,97 @@ html.motion .reveal.in {
   .grow-term { font-size: 11px; }
 }
 
+/* Short browser windows are common on scaled Windows laptops and landscape
+   phones. They keep the scroll story, but spend their limited height on the
+   diagrams rather than on secondary chrome. */
+@media (max-height: 500px) {
+  .pin[data-beat="alive"]  { --pin-vh: 340vh; }
+  .pin[data-beat="grow"]   { --pin-vh: 460vh; }
+  .pin[data-beat="kernel"] { --pin-vh: 300vh; }
+
+  .stage {
+    padding: 14px 24px;
+  }
+
+  .kernel-grid {
+    grid-template-columns: minmax(170px, 0.78fr) minmax(0, 1.22fr);
+    gap: 20px;
+    max-width: 1120px;
+  }
+  .kernel-copy { gap: 8px; }
+  .kernel-copy h2 { font-size: clamp(24px, 3.2vw, 34px); }
+  .kernel-copy .beat-sub {
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+  .kernel-links { display: none; }
+  .stack { gap: 6px; }
+  .layer {
+    padding: 7px 10px;
+    gap: 8px;
+    border-radius: 8px;
+  }
+  .layer--kernel {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .layer-kernel-top { gap: 8px; }
+  .layer-name {
+    width: 52px;
+    font-size: 8px;
+  }
+  .layer-item { font-size: 10px; }
+  .kernel-rule { font-size: 8px; }
+  .nouns { gap: 4px; }
+  .noun {
+    padding: 2px 5px;
+    font-size: 8.5px;
+  }
+}
+
+@media (max-width: 860px) and (max-height: 500px) {
+  /* Keep clear of the sticky navigation while reclaiming the rest of the
+     landscape viewport for the composition. */
+  .stage { padding: 58px 16px 10px; }
+}
+
+/* The diagrams should gain presence on large monitors without becoming a
+   wall-to-wall spectacle. Their maximum width grows one measured step; type
+   and controls retain the same readable line lengths. */
+@media (min-width: 1800px) and (min-height: 900px) {
+  .field {
+    max-width: 1240px;
+    height: min(74vh, 720px);
+  }
+  .grow-wrap { max-width: 1160px; }
+  .grow-field { height: min(46vh, 460px); }
+  .kernel-grid {
+    max-width: 1280px;
+    gap: 72px;
+  }
+}
+
 /* ====================================================================== *
  * Reduced motion — the global off switch
  * ====================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  html:not([data-motion="full"]) *,
+  html:not([data-motion="full"]) *::before,
+  html:not([data-motion="full"]) *::after {
     animation: none !important;
     transition: none !important;
   }
-  html.motion .reveal { opacity: 1 !important; transform: none !important; }
-  html.motion .type-on { width: auto !important; }
-  .check-path { stroke-dashoffset: 0 !important; }
+  html:not([data-motion="full"]).motion .reveal { opacity: 1 !important; transform: none !important; }
+  html:not([data-motion="full"]).motion .type-on { width: auto !important; }
+  html:not([data-motion="full"]) .check-path { stroke-dashoffset: 0 !important; }
+}
+
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation: none !important;
+  transition: none !important;
 }
 
 @media print {

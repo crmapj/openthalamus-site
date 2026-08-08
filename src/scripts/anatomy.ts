@@ -185,7 +185,9 @@ export function initAnatomy(): void {
   const stage = pin?.querySelector<HTMLElement>(".an-stage");
   if (!pin || !canvas || !stage) return;
 
-  const reduced = window.matchMedia(REDUCED_QUERY).matches;
+  const forced = document.documentElement.dataset.motion;
+  const reduced = forced === "reduced"
+    || (forced !== "full" && window.matchMedia(REDUCED_QUERY).matches);
   if (reduced) return; // CSS resting state is already the composed plate.
 
   const ctx = canvas.getContext("2d");

@@ -43,17 +43,12 @@
  * describe. Compact mode drives the same elements as a downward cascade
  * instead: the thing a thumb is already doing.
  *
- * `prefers-reduced-motion` remains the one hard blocker.
+ * `prefers-reduced-motion` remains the default blocker. A visitor can make an
+ * explicit site-level choice with the visible motion control.
  */
 const COMPACT_QUERY = "(max-width: 860px)";
-/*
- * Too short to pin anything. A landscape phone is ~390px tall, and the compact
- * stacks are ~700px — inside a `100svh` stage with `overflow: hidden` the beat
- * plays clipped top and bottom. The old motion gate carried a `min-height: 600`
- * for exactly this and it was lost when the gate came off. Static composed flow
- * instead; the teardown path already exists.
- */
-const TOO_SHORT_QUERY = "(max-height: 500px)";
+const SHORT_QUERY = "(max-height: 500px)";
+const LANDSCAPE_QUERY = "(orientation: landscape)";
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
 /** Samples per path for the precomputed point table. */
@@ -115,7 +110,8 @@ const $ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = docu
 
 export function initBeats(): void {
   const compactMQ = window.matchMedia(COMPACT_QUERY);
-  const shortMQ = window.matchMedia(TOO_SHORT_QUERY);
+  const shortMQ = window.matchMedia(SHORT_QUERY);
+  const landscapeMQ = window.matchMedia(LANDSCAPE_QUERY);
   const reducedMQ = window.matchMedia(REDUCED_QUERY);
 
   const pins = $(".pin");
@@ -125,8 +121,14 @@ export function initBeats(): void {
   let engineCompact = false;
 
   const sync = () => {
-    const wanted = !reducedMQ.matches && !shortMQ.matches;
-    const compact = compactMQ.matches;
+    const forced = document.documentElement.dataset.motion;
+    const wanted = forced === "full" || (forced !== "reduced" && !reducedMQ.matches);
+    // A short landscape phone has the horizontal room for the desktop
+    // constellation even though its width falls just below the portrait
+    // breakpoint. Keeping portrait geometry there crowds the centre while
+    // wasting both sides of the screen.
+    const shortLandscape = shortMQ.matches && landscapeMQ.matches;
+    const compact = compactMQ.matches && !shortLandscape;
     // Crossing the breakpoint swaps choreography, so the old one is torn down
     // and its inline styles handed back to CSS first.
     if (engine && (!wanted || compact !== engineCompact)) {
@@ -150,6 +152,7 @@ export function initBeats(): void {
   };
   listen(compactMQ);
   listen(shortMQ);
+  listen(landscapeMQ);
   listen(reducedMQ);
 
   // The running engine handles its own resizes. This covers the static path:
@@ -170,6 +173,7 @@ interface Engine {
 function start(pins: HTMLElement[], compact = false): Engine {
   const doc = document.documentElement;
   doc.classList.add("motion");
+  doc.classList.toggle("motion-compact", compact);
   pins.forEach((p) => p.classList.add("pin--motion"));
 
   const beats: Beat[] = [];
@@ -424,6 +428,7 @@ function start(pins: HTMLElement[], compact = false): Engine {
 
   if (!beats.length) {
     doc.classList.remove("motion");
+    doc.classList.remove("motion-compact");
     pins.forEach((p) => p.classList.remove("pin--motion"));
     return { destroy() {} };
   }
@@ -568,6 +573,7 @@ function start(pins: HTMLElement[], compact = false): Engine {
     destroy() {
       for (const c of cleanups) c();
       doc.classList.remove("motion");
+      doc.classList.remove("motion-compact");
       pins.forEach((p) => p.classList.remove("pin--motion"));
       // Hand every element back to CSS so the static composition takes over.
       for (const el of $("[style]", document.getElementById("beats") ?? document)) {

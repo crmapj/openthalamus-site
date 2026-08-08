@@ -18,6 +18,41 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const scenarios = [
   { name: "normal Chrome", init: "", motion: true },
   {
+    name: "short Windows viewport",
+    init: "",
+    motion: true,
+    width: 1366,
+    height: 490,
+  },
+  {
+    name: "landscape phone viewport",
+    init: "",
+    motion: true,
+    width: 844,
+    height: 390,
+  },
+  {
+    name: "portrait phone viewport",
+    init: "",
+    motion: true,
+    width: 390,
+    height: 844,
+  },
+  {
+    name: "large 1080p viewport",
+    init: "",
+    motion: true,
+    width: 1920,
+    height: 1080,
+  },
+  {
+    name: "large 1440p viewport",
+    init: "",
+    motion: true,
+    width: 2560,
+    height: 1440,
+  },
+  {
     name: "Chrome without IntersectionObserver",
     init: 'Object.defineProperty(window,"IntersectionObserver",{value:undefined,configurable:true});',
     motion: true,
@@ -61,7 +96,18 @@ const scenarios = [
     `,
     motion: true,
   },
-  { name: "reduced motion", init: "", motion: false, reduced: true },
+  { name: "system reduced motion", init: "", motion: false, reduced: true },
+  {
+    name: "system reduced motion with a full-motion override",
+    init: 'localStorage.setItem("thalamus-motion", "full");',
+    motion: true,
+    reduced: true,
+  },
+  {
+    name: "site motion paused",
+    init: 'localStorage.setItem("thalamus-motion", "reduced");',
+    motion: false,
+  },
 ];
 
 let passes = 0;
@@ -94,6 +140,8 @@ async function cdp(ws, id, method, params = {}) {
 }
 
 async function openBrowser(scenario) {
+  const width = scenario.width ?? 1440;
+  const height = scenario.height ?? 900;
   await rm(PROFILE, { recursive: true, force: true, maxRetries: 3 }).catch(() => {});
   const chrome = spawn(
     process.env.CHROMIUM_BIN ?? "chromium",
@@ -103,7 +151,7 @@ async function openBrowser(scenario) {
       "--no-sandbox",
       `--remote-debugging-port=${PORT}`,
       `--user-data-dir=${PROFILE}`,
-      "--window-size=1440,900",
+      `--window-size=${width},${height}`,
       "about:blank",
     ],
     { stdio: "ignore" },
@@ -132,8 +180,8 @@ async function openBrowser(scenario) {
   let id = 0;
   await cdp(ws, ++id, "Page.enable");
   await cdp(ws, ++id, "Emulation.setDeviceMetricsOverride", {
-    width: 1440,
-    height: 900,
+    width,
+    height,
     deviceScaleFactor: 1,
     mobile: false,
   });
@@ -209,7 +257,7 @@ async function inspectMotion(evaluate) {
     const anatomyEarly = await sample(anatomyPin, anatomySelectors, 0.15);
     const anatomyLate = await sample(anatomyPin, anatomySelectors, 0.75);
     return {
-      classes: document.documentElement.className,
+      classes: [...document.documentElement.classList],
       beats,
       anatomy: anatomyEarly !== anatomyLate,
     };
@@ -223,7 +271,7 @@ async function inspectStatic(evaluate) {
       return style.opacity !== "0" && style.visibility !== "hidden";
     });
     return {
-      classes: document.documentElement.className,
+      classes: [...document.documentElement.classList],
       pinsStatic: [...document.querySelectorAll(".pin")].every((pin) =>
         !pin.classList.contains("pin--motion") && getComputedStyle(pin).height !== "0px"
       ),
@@ -235,7 +283,15 @@ async function inspectStatic(evaluate) {
   `);
 }
 
-for (const scenario of scenarios) {
+const selectedScenarios = process.env.MOTION_SCENARIO
+  ? scenarios.filter((scenario) => scenario.name.includes(process.env.MOTION_SCENARIO))
+  : scenarios;
+
+if (!selectedScenarios.length) {
+  throw new Error(`No motion scenario matched ${process.env.MOTION_SCENARIO}`);
+}
+
+for (const scenario of selectedScenarios) {
   console.log(`\n${scenario.name}`);
   const browser = await openBrowser(scenario);
   try {
@@ -243,21 +299,21 @@ for (const scenario of scenarios) {
       const result = await inspectMotion(browser.evaluate);
       check(`${scenario.name}: motion mode enabled`,
         result.classes.includes("motion") && result.classes.includes("anatomy-motion"),
-        `classes=${result.classes}`);
+        `classes=${result.classes.join(" ")}`);
       for (const [beat, changed] of Object.entries(result.beats)) {
         check(`${scenario.name}: ${beat} changes across scroll`, changed);
       }
       check(`${scenario.name}: anatomy changes across scroll`, result.anatomy);
     } else {
       const result = await inspectStatic(browser.evaluate);
-      check("reduced motion: motion classes absent",
+      check(`${scenario.name}: motion classes absent`,
         !result.classes.includes("motion") && !result.classes.includes("anatomy-motion"),
-        `classes=${result.classes}`);
-      check("reduced motion: pins use the static layout", result.pinsStatic);
-      check("reduced motion: alive content visible", result.aliveVisible);
-      check("reduced motion: grow content visible", result.growVisible);
-      check("reduced motion: kernel content visible", result.kernelVisible);
-      check("reduced motion: anatomy copy visible", result.anatomyVisible);
+        `classes=${result.classes.join(" ")}`);
+      check(`${scenario.name}: pins use the static layout`, result.pinsStatic);
+      check(`${scenario.name}: alive content visible`, result.aliveVisible);
+      check(`${scenario.name}: grow content visible`, result.growVisible);
+      check(`${scenario.name}: kernel content visible`, result.kernelVisible);
+      check(`${scenario.name}: anatomy copy visible`, result.anatomyVisible);
     }
   } finally {
     await browser.close();

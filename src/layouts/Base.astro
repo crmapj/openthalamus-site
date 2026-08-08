@@ -146,6 +146,20 @@ const jsonLd = {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    {/* Apply a site-level motion choice before CSS paints. The operating-system
+        preference remains the default; this only records an explicit choice
+        made with the visible motion control. */}
+    <script is:inline>
+      try {
+        const motion = localStorage.getItem("thalamus-motion");
+        if (motion === "full" || motion === "reduced") {
+          document.documentElement.dataset.motion = motion;
+        }
+      } catch {
+        /* Storage can be unavailable in hardened browsers. System mode remains safe. */
+      }
+    </script>
+
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />

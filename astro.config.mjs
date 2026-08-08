@@ -26,10 +26,15 @@ export default defineConfig({
     }),
   ],
   build: { inlineStylesheets: "always" },
-  // Keep the small client bundle parseable on older Chromium installs. Vite's
-  // moving `modules` default targets much newer Chrome; this site needs no
-  // syntax newer than Chrome 64 once esbuild lowers it.
-  vite: { build: { target: "chrome64" } },
+  // Vite still relies on native ESM, but within that floor the client bundle
+  // should be equally parseable across Chromium, Firefox and WebKit. These are
+  // Vite 6's documented native-module minimums rather than a Chrome-only target.
+  vite: {
+    build: {
+      target: ["chrome64", "edge79", "firefox67", "safari11.1"],
+      cssTarget: ["chrome64", "edge79", "firefox67", "safari11.1"],
+    },
+  },
   compressHTML: true,
   server: { host: true, port: 4321 },
 

@@ -36,7 +36,10 @@ const title = "thalamus — the fully extensible, self-hosted agentic OS";
   import { initBeats } from "../scripts/beats";
   import { initAnatomy } from "../scripts/anatomy";
 
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const forcedMotion = document.documentElement.dataset.motion;
+  const reduced = forcedMotion === "reduced" || (forcedMotion !== "full" && reducedQuery.matches);
+  document.documentElement.dataset.motionState = reduced ? "reduced" : "full";
 
   /* ── The pinned scroll beats ─────────────────────────────────────────────
      Motion is opt-in and the engine decides for itself whether it can run.
@@ -88,6 +91,25 @@ const title = "thalamus — the fully extensible, self-hosted agentic OS";
   // Failsafe: anything not reached shortly after load is shown regardless.
   setTimeout(showAll, 900);
   window.addEventListener("beforeprint", showAll);
+
+  /* ── Motion preference ──────────────────────────────────────────────────
+     The OS preference is the default. A visible control lets a visitor pause
+     motion on any device, or explicitly opt into the full explanatory
+     choreography even when their system requests less motion. Reloading keeps
+     both independent engines and their sticky geometry in one known state. */
+  const motionControl = document.getElementById("motion-control");
+  const motionLabel = document.getElementById("motion-control-label");
+  if (motionLabel) motionLabel.textContent = reduced ? "Play full motion" : "Pause motion";
+  motionControl?.setAttribute("aria-label", reduced ? "Play full page motion" : "Pause page motion");
+  motionControl?.addEventListener("click", () => {
+    const next = reduced ? "full" : "reduced";
+    try {
+      localStorage.setItem("thalamus-motion", next);
+    } catch {
+      document.documentElement.dataset.motion = next;
+    }
+    window.location.reload();
+  });
 
   /* ── Mobile menu ─────────────────────────────────────────────────────────
      State is one class on <html>, so the glyph, the panel and its stagger are

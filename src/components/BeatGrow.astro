@@ -161,7 +161,8 @@ const labels = [
      * idea this beat has: capability spreading outward from a core. The chips
      * are simply placed on a taller, narrower field.
      */
-    .chip {
+    :global(html.motion-compact) .chip,
+    :global(.pin:not(.pin--motion)) .chip {
       left: calc(var(--mx) * 1%);
       top: calc(var(--my) * 1%);
     }
@@ -215,5 +216,24 @@ const labels = [
       transform: none;
       margin: 26px auto 0;
     }
+  }
+
+  @media (max-height: 500px) {
+    /* Commands narrate the same four waves as the labels. On a short stage the
+       diagram earns the pixels and the terminal returns in the static/no-JS
+       document where height is unconstrained. */
+    :global(.pin--motion) .grow-wrap { height: 100%; gap: 4px; }
+    :global(.pin--motion) .grow-head { height: 52px; margin-bottom: 2px; }
+    :global(.pin--motion) .grow-field {
+      flex: 1;
+      height: auto;
+      min-height: 0;
+    }
+    :global(.pin--motion) .grow-term { display: none; }
+    :global(.pin--motion) .grow-final {
+      gap: 6px;
+    }
+    :global(.pin--motion) .grow-final h2 { font-size: 26px; }
+    :global(.pin--motion) .grow-final p { display: none; }
   }
 </style>

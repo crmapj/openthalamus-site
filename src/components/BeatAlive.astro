@@ -183,7 +183,8 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
      * signals fall down the screen. Same frame logic as desktop; only the
      * coordinates change.
      */
-    .node {
+    :global(html.motion-compact) .node,
+    :global(.pin:not(.pin--motion)) .node {
       left: calc(var(--mx) * 1%);
       top: calc(var(--my) * 1%);
     }
@@ -213,7 +214,7 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
 
     /* The payoff takes the node's place rather than sitting under it — the
        node clears just before it lands, so one thing becomes the other. */
-    .payoff {
+    :global(html.motion-compact) .payoff {
       top: 50%;
       transform: translateY(-50%);
       gap: 12px;
@@ -251,5 +252,20 @@ const payoff = ["6 agents", "14 PRs", "3 drafts waiting", "$12.40 spent"];
       transform: none;
       margin-top: 20px;
     }
+  }
+
+  @media (max-height: 500px) {
+    /* The ticker repeats information already carried by the nodes and the
+       accessible summary. Removing it gives a short stage one clear visual
+       argument instead of two compressed halves. */
+    .field { height: 100%; gap: 8px; }
+    .ticker { display: none; }
+  }
+
+  @media (max-width: 860px) and (max-height: 500px) and (orientation: landscape) {
+    /* These two dashed queue chips sit deliberately outside the desktop input
+       rail. A phone has no outer margin to hold them, and the three primary
+       sources already carry the routing argument. */
+    .js-queued { display: none; }
   }
 </style>

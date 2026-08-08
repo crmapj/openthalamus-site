@@ -54,6 +54,10 @@ const sections = [
       <Destination to="docs" />
       <Destination to="github" />
     </div>
+    <button class="motion-control" id="motion-control" type="button">
+      <span class="motion-control-mark" aria-hidden="true"></span>
+      <span id="motion-control-label">Pause motion</span>
+    </button>
     <span class="nav-status" aria-hidden="true">{site.status}</span>
   </div>
 </nav>
@@ -93,6 +97,34 @@ const sections = [
   .nav-sections,
   .nav-status {
     display: none;
+  }
+
+  .motion-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .motion-control:hover {
+    color: var(--text-primary);
+  }
+  .motion-control-mark {
+    width: 7px;
+    height: 7px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+  }
+  :global(html[data-motion-state="full"]) .motion-control-mark {
+    background: currentColor;
   }
 
   @media (max-width: 860px) {
@@ -144,6 +176,11 @@ const sections = [
       margin-top: 26px;
       border-top: 1px solid rgba(255, 255, 255, 0.09);
     }
+    .motion-control {
+      min-height: 44px;
+      margin-top: 18px;
+      font-size: 11px;
+    }
     .nav-status {
       display: block;
       position: absolute;
@@ -171,13 +208,20 @@ const sections = [
     :global(html.nav-open) .nav-links > :nth-child(1) { transition-delay: 60ms; }
     :global(html.nav-open) .nav-links > :nth-child(2) { transition-delay: 100ms; }
     :global(html.nav-open) .nav-links > :nth-child(3) { transition-delay: 140ms; }
+    :global(html.nav-open) .nav-links > :nth-child(4) { transition-delay: 180ms; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nav-bar,
-    .nav-links,
-    .nav-links > * {
+    :global(html:not([data-motion="full"])) .nav-bar,
+    :global(html:not([data-motion="full"])) .nav-links,
+    :global(html:not([data-motion="full"])) .nav-links > * {
       transition: none !important;
     }
+  }
+
+  :global(html[data-motion="reduced"]) .nav-bar,
+  :global(html[data-motion="reduced"]) .nav-links,
+  :global(html[data-motion="reduced"]) .nav-links > * {
+    transition: none !important;
   }
 </style>

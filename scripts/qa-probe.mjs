@@ -11,6 +11,8 @@ const BASE = process.env.QA_BASE ?? "http://127.0.0.1:4399/";
 const INIT = process.env.QA_INIT ?? "";
 const FRAC = Number(process.argv[2] ?? 0);
 const EXPR = process.argv[3] ?? "1";
+const WIDTH = Number(process.env.QA_WIDTH ?? 1440);
+const HEIGHT = Number(process.env.QA_HEIGHT ?? 900);
 const PORT = 9334;
 const PROFILE = new URL("../.qa-profile2/", import.meta.url).pathname;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -37,7 +39,7 @@ const chrome = spawn(
     "--no-sandbox",
     `--remote-debugging-port=${PORT}`,
     `--user-data-dir=${PROFILE}`,
-    "--window-size=1440,900",
+    `--window-size=${WIDTH},${HEIGHT}`,
     "about:blank",
   ],
   { stdio: "ignore" },
@@ -60,8 +62,8 @@ await new Promise((r) => ws.addEventListener("open", r, { once: true }));
 let id = 0;
 await cdp(ws, ++id, "Page.enable");
 await cdp(ws, ++id, "Emulation.setDeviceMetricsOverride", {
-  width: 1440,
-  height: 900,
+  width: WIDTH,
+  height: HEIGHT,
   deviceScaleFactor: 1,
   mobile: false,
 });
