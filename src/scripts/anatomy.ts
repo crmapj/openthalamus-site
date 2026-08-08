@@ -218,12 +218,14 @@ export function initAnatomy(): void {
   let p = 0;
   let span = 1;
   let pinTop = 0;
+  let pinBottom = 0;
   let active = false;
   let raf = 0;
 
   const measure = () => {
     const rect = pin.getBoundingClientRect();
     pinTop = rect.top + window.scrollY;
+    pinBottom = pinTop + pin.offsetHeight;
     span = Math.max(1, pin.offsetHeight - stage.offsetHeight);
   };
 
@@ -437,22 +439,39 @@ export function initAnatomy(): void {
     if (!raf) raf = requestAnimationFrame(frame);
   };
 
+  let observerResponded = false;
+  const syncActiveFromScroll = () => {
+    const margin = 100;
+    active = pinBottom >= window.scrollY - margin
+      && pinTop <= window.scrollY + window.innerHeight + margin;
+  };
+
   const onScroll = () => {
+    if (!observerResponded) syncActiveFromScroll();
     if (!active) return;
     readProgress();
     request();
   };
 
   /* Only run the loop while the plate is on screen. A canvas redrawing 4,900
-     particles behind the FAQ is pure heat. */
-  const io = new IntersectionObserver(
-    (entries) => {
-      active = entries.some((e) => e.isIntersecting);
-      if (active) { measure(); readProgress(); request(); }
-    },
-    { rootMargin: "100px 0px" },
-  );
-  io.observe(pin);
+     particles behind the FAQ is pure heat. IntersectionObserver is an
+     optimisation only: cached bounds cover browsers where it is missing,
+     blocked, or present without ever delivering a callback. */
+  if (typeof window.IntersectionObserver === "function") {
+    try {
+      const io = new window.IntersectionObserver(
+        (entries) => {
+          observerResponded = true;
+          active = entries.some((entry) => entry.isIntersecting);
+          if (active) { measure(); readProgress(); request(); }
+        },
+        { rootMargin: "100px 0px" },
+      );
+      io.observe(pin);
+    } catch {
+      // The cached-bounds path below remains active.
+    }
+  }
 
   /* The running/waiting flicker on the harness cards is time-driven, not
      scroll-driven, so the loop has to keep ticking while the plate is visible
@@ -472,11 +491,13 @@ export function initAnatomy(): void {
       parts = buildParticles(compact ? 0.62 : 1);
     }
     measure();
+    if (!observerResponded) syncActiveFromScroll();
     readProgress();
     request();
   });
 
   measure();
+  syncActiveFromScroll();
   readProgress();
   request();
 }

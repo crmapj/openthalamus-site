@@ -8,6 +8,7 @@ import { spawn } from "node:child_process";
 import { rm } from "node:fs/promises";
 
 const BASE = process.env.QA_BASE ?? "http://127.0.0.1:4399/";
+const INIT = process.env.QA_INIT ?? "";
 const FRAC = Number(process.argv[2] ?? 0);
 const EXPR = process.argv[3] ?? "1";
 const PORT = 9334;
@@ -64,6 +65,11 @@ await cdp(ws, ++id, "Emulation.setDeviceMetricsOverride", {
   deviceScaleFactor: 1,
   mobile: false,
 });
+if (INIT) {
+  await cdp(ws, ++id, "Page.addScriptToEvaluateOnNewDocument", {
+    source: INIT,
+  });
+}
 await cdp(ws, ++id, "Page.navigate", { url: BASE });
 await sleep(1800);
 
@@ -78,6 +84,9 @@ const out = await cdp(ws, ++id, "Runtime.evaluate", {
   awaitPromise: true,
   returnByValue: true,
 });
+if (out.exceptionDetails) {
+  throw new Error(out.exceptionDetails.exception?.description ?? "probe expression threw");
+}
 console.log(out.result.value ?? out.result.description);
 
 ws.close();

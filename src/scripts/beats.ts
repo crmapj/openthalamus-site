@@ -82,6 +82,7 @@ interface Beat {
   key: "alive" | "grow" | "kernel";
   pin: HTMLElement;
   top: number;
+  bottom: number;
   span: number;
   active: boolean;
   frame: (p: number) => void;
@@ -143,9 +144,13 @@ export function initBeats(): void {
   };
 
   sync();
-  compactMQ.addEventListener("change", sync);
-  shortMQ.addEventListener("change", sync);
-  reducedMQ.addEventListener("change", sync);
+  const listen = (query: MediaQueryList) => {
+    if (typeof query.addEventListener === "function") query.addEventListener("change", sync);
+    else query.addListener(sync);
+  };
+  listen(compactMQ);
+  listen(shortMQ);
+  listen(reducedMQ);
 
   // The running engine handles its own resizes. This covers the static path:
   // percentage-positioned nodes move when the window does, so the strokes
@@ -444,6 +449,7 @@ function start(pins: HTMLElement[], compact = false): Engine {
       const stage = b.pin.firstElementChild as HTMLElement | null;
       const travel = b.pin.offsetHeight - (stage?.offsetHeight ?? window.innerHeight);
       b.span = Math.max(1, travel);
+      b.bottom = b.top + b.pin.offsetHeight;
     }
   };
 
@@ -477,26 +483,59 @@ function start(pins: HTMLElement[], compact = false): Engine {
     requestAnimationFrame(render);
   };
 
-  // Only beats near the viewport compute. A beat leaving the viewport is
-  // settled to its terminal frame first, so it is never left mid-animation.
-  const io = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) {
-        const beat = beats.find((b) => b.pin === e.target);
-        if (!beat) continue;
-        beat.active = e.isIntersecting;
-        if (e.isIntersecting) {
-          // First time on screen is the first time its geometry is real.
-          if (!beat.measured) measureBeat(beat);
-        } else {
-          beat.frame(e.boundingClientRect.top > 0 ? 0 : 1);
-        }
-      }
-      onScroll();
-    },
-    { rootMargin: "20% 0px 20% 0px" },
-  );
-  beats.forEach((b) => io.observe(b.pin));
+  const setActive = (beat: Beat, active: boolean, before: boolean) => {
+    beat.active = active;
+    if (active) {
+      // First time on screen is the first time its geometry is real.
+      if (!beat.measured) measureBeat(beat);
+    } else {
+      beat.frame(before ? 0 : 1);
+    }
+  };
+
+  /*
+   * IntersectionObserver is a performance hint, not a correctness
+   * dependency. Older Chrome builds and some privacy tooling omit or stall it.
+   * Until the first real callback proves the observer works, cached pin bounds
+   * keep the same near-viewport activation contract alive.
+   */
+  let observerResponded = false;
+  let io: IntersectionObserver | null = null;
+  const syncActiveFromScroll = () => {
+    const margin = window.innerHeight * 0.2;
+    const viewportTop = window.scrollY - margin;
+    const viewportBottom = window.scrollY + window.innerHeight + margin;
+    for (const beat of beats) {
+      const active = beat.bottom >= viewportTop && beat.top <= viewportBottom;
+      if (active !== beat.active) setActive(beat, active, beat.top > viewportBottom);
+    }
+  };
+
+  if (typeof window.IntersectionObserver === "function") {
+    try {
+      io = new window.IntersectionObserver(
+        (entries) => {
+          observerResponded = true;
+          for (const entry of entries) {
+            const beat = beats.find((candidate) => candidate.pin === entry.target);
+            if (!beat) continue;
+            setActive(beat, entry.isIntersecting, entry.boundingClientRect.top > 0);
+          }
+          onScroll();
+        },
+        { rootMargin: "20% 0px 20% 0px" },
+      );
+      beats.forEach((beat) => io?.observe(beat.pin));
+    } catch {
+      io?.disconnect();
+      io = null;
+    }
+  }
+
+  const onWindowScroll = () => {
+    if (!observerResponded) syncActiveFromScroll();
+    onScroll();
+  };
 
   // Resize can change every cached number, so re-measure and repaint. Debounced
   // because a desktop window drag fires this continuously.
@@ -510,17 +549,18 @@ function start(pins: HTMLElement[], compact = false): Engine {
   };
 
   measureAll();
+  syncActiveFromScroll();
   render();
 
-  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("scroll", onWindowScroll, { passive: true });
   window.addEventListener("resize", onResize);
   // Late-loading fonts shift layout; re-measure once they settle.
   if (document.fonts?.ready) document.fonts.ready.then(measureAll).catch(() => {});
 
   cleanups.push(() => {
-    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("scroll", onWindowScroll);
     window.removeEventListener("resize", onResize);
-    io.disconnect();
+    io?.disconnect();
     window.clearTimeout(resizeTimer);
   });
 
@@ -587,7 +627,7 @@ function makeBeat(
   measure?: () => void,
 ): Beat {
   const pin = pins.find((p) => p.dataset.beat === key)!;
-  return { key, pin, top: 0, span: 1, active: false, measured: false, frame, measure };
+  return { key, pin, top: 0, bottom: 0, span: 1, active: false, measured: false, frame, measure };
 }
 
 /* ---------------------------------------------------------------------- *

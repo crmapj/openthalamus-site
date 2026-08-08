@@ -64,26 +64,30 @@ const title = "thalamus — the fully extensible, self-hosted agentic OS";
      show it again. `.reveal` has no hidden state in CSS unless <html> carries
      `motion`, which only the engine sets. */
   const revealTargets = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
-  if (!reduced && "IntersectionObserver" in window && revealTargets.length) {
-    const showAll = () => revealTargets.forEach((el) => el.classList.add("in"));
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add("in");
-            io.unobserve(e.target);
+  const showAll = () => revealTargets.forEach((el) => el.classList.add("in"));
+  if (!reduced && typeof window.IntersectionObserver === "function" && revealTargets.length) {
+    try {
+      const io = new window.IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
           }
-        }
-      },
-      { rootMargin: "200px 0px -5% 0px", threshold: 0.01 },
-    );
-    revealTargets.forEach((el) => io.observe(el));
-    // Failsafe: anything not reached shortly after load is shown regardless.
-    setTimeout(showAll, 900);
-    window.addEventListener("beforeprint", showAll);
+        },
+        { rootMargin: "200px 0px -5% 0px", threshold: 0.01 },
+      );
+      revealTargets.forEach((el) => io.observe(el));
+    } catch {
+      showAll();
+    }
   } else {
-    revealTargets.forEach((el) => el.classList.add("in"));
+    showAll();
   }
+  // Failsafe: anything not reached shortly after load is shown regardless.
+  setTimeout(showAll, 900);
+  window.addEventListener("beforeprint", showAll);
 
   /* ── Mobile menu ─────────────────────────────────────────────────────────
      State is one class on <html>, so the glyph, the panel and its stagger are
@@ -142,20 +146,25 @@ const title = "thalamus — the fully extensible, self-hosted agentic OS";
 
   const waitlistEl = document.getElementById("waitlist");
   if (siteKey && waitlistEl) {
-    if ("IntersectionObserver" in window) {
-      const tio = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((e) => e.isIntersecting)) {
-            loadTurnstile();
-            tio.disconnect();
-          }
-        },
-        { rootMargin: "200% 0px" },
-      );
-      tio.observe(waitlistEl);
-    } else {
-      loadTurnstile();
+    let turnstileObserved = false;
+    if (typeof window.IntersectionObserver === "function") {
+      try {
+        const tio = new window.IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              loadTurnstile();
+              tio.disconnect();
+            }
+          },
+          { rootMargin: "200% 0px" },
+        );
+        tio.observe(waitlistEl);
+        turnstileObserved = true;
+      } catch {
+        // Fall through to an eager load below.
+      }
     }
+    if (!turnstileObserved) loadTurnstile();
     waitlistEl.addEventListener("pointerdown", loadTurnstile, { once: true });
     waitlistEl.addEventListener("focusin", loadTurnstile, { once: true });
   }

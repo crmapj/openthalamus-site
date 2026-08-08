@@ -26,6 +26,10 @@ export default defineConfig({
     }),
   ],
   build: { inlineStylesheets: "always" },
+  // Keep the small client bundle parseable on older Chromium installs. Vite's
+  // moving `modules` default targets much newer Chrome; this site needs no
+  // syntax newer than Chrome 64 once esbuild lowers it.
+  vite: { build: { target: "chrome64" } },
   compressHTML: true,
   server: { host: true, port: 4321 },
 
